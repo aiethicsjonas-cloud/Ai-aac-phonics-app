@@ -12,9 +12,8 @@ The prototype now natively supports **Dansk (Danish)** alongside English:
 
 1. **Full 29-Letter Danish Alphabet:** Includes the three Danish vowels **Æ**, **Ø**, and **Å**.
 2. **Danish Phonics Sounds (*Bogstavlyde*):**
-   * Uses **pure Danish phonemes** (*rene bogstavlyde*) with **zero trailing "u" sounds**:
-     * Stops/plosives (**B**, **D**, **G**, **K**, **P**, **T**) are crisp and clipped without any English-style "uh" / "u" suffix.
-     * Continuants (**S**, **F**, **M**, **N**, **L**, **R**, **V**) produce pure sibilant, hum, and fricative sounds.
+   * **Default (computer voice):** browser speech engines spell out vowel-less text with letter names (`j` → "jod", `ss` → "æs æs"). To avoid that, each consonant is spoken as a short syllable with "ø" (J → "jø", S → "sø", M → "mø"). "ø" is used because "be", "de", "pe" etc. are the Danish letter *names*. The strings live in `danishPhonics` / `danishBlends` in `index.html` and are easy to tweak.
+   * **🎙️ Record your own sounds (*Optag egne lyde*):** for true phonemes with no vowel at all, open **Indstillinger → Optag lyde** and record each sound with the microphone (max 3 s, silence is trimmed automatically). A recording replaces the computer voice for that letter or blend, including in *Lydord*. Recordings are stored in the browser (IndexedDB) on that device only. Recording requires `https://` (e.g. GitHub Pages) or a local file opened in Chrome/Edge.
      * **A**: /æ/ as in *Abe* 🐒
      * **Æ**: /ɛː/ as in *Æble* 🍎
      * **Ø**: /øː/ as in *Øje* 👁️
@@ -67,4 +66,18 @@ Modern operating systems have built-in Danish text-to-speech. To get the highest
 
 ## 🚀 How to Run & Deploy
 
-Open [index.html](file:///Users/jonas/.gemini/antigravity/scratch/aac-phonics-app/index.html) in your browser, or push to GitHub Pages to share with schools and clinics worldwide!
+The app is a **Progressive Web App (PWA)** hosted on GitHub Pages:
+
+**https://aiethicsjonas-cloud.github.io/Ai-aac-phonics-app/**
+
+Every push to `main` updates the live site within a minute or two. Installed apps pick up the new version the next time they are opened.
+
+### 📱 Install on a phone or tablet
+* **iPhone / iPad (Safari):** open the link → tap **Share** → **Add to Home Screen** (*Føj til hjemmeskærm*).
+* **Android (Chrome):** open the link → tap **Install app**, or ⋮ menu → **Add to Home screen**.
+* **Windows / Mac (Chrome or Edge):** click the install icon in the address bar.
+
+After the first visit the app works **offline**. Note that Android needs a Danish voice installed under *Settings → Google speech services* for Danish speech.
+
+### Run locally
+Open `index.html` in a browser. Offline mode and installing only work when the app is served over `https://` (or `localhost`).
