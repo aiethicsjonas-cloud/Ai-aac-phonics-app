@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GazeVoice AAC - Dansk & English Phonics Eye-Tracker Prototype</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    :root {
+      --bg-main: #0b1120;
+      --bg-card: #1e293b;
+      --border-card: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #fbbf24;
+      --accent-glow: rgba(251, 191, 36, 0.35);
+      --highlight-blend: #a855f7;
+      --rest-zone-bg: #0f2027;
+      --rest-zone-border: #1e3a47;
+    }
+
+    body.theme-yellow-black {
+      --bg-main: #000000;
+      --bg-card: #141414;
+      --border-card: #444444;
+      --text-main: #ffff00;
+      --text-muted: #e2e8f0;
+      --accent: #ffff00;
+      --accent-glow: rgba(255, 255, 0, 0.45);
+      --highlight-blend: #38bdf8;
+      --rest-zone-bg: #1a1a1a;
+      --rest-zone-border: #555555;
+    }
+
+    body.theme-light-contrast {
+      --bg-main: #f8fafc;
+      --bg-card: #ffffff;
+      --border-card: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --accent: #2563eb;
+      --accent-glow: rgba(37, 99, 235, 0.3);
+      --highlight-blend: #7c3aed;
+      --rest-zone-bg: #f1f5f9;
+      --rest-zone-border: #94a3b8;
+    }
+
+    body.theme-sensory-calm {
+      --bg-main: #131c19;
+      --bg-card: #1d2d27;
+      --border-card: #2d453b;
+      --text-main: #ecfdf5;
+      --text-muted: #a7f3d0;
+      --accent: #34d399;
+      --accent-glow: rgba(52, 211, 153, 0.3);
+      --highlight-blend: #f59e0b;
+      --rest-zone-bg: #162420;
+      --rest-zone-border: #233e34;
+    }
+
+    @keyframes popPulse {
+      0% { transform: scale(0.96); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1.0); }
+    }
+
+    .pop-anim {
+      animation: popPulse 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .dwell-ring {
+      transition: stroke-dashoffset 0.05s linear;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+
+    .gaze-target {
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    #gazeReticle {
+      pointer-events: none;
+      position: fixed;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.15s, height 0.15s, opacity 0.2s, background-color 0.2s, border-color 0.2s;
+    }
+
+    @keyframes gentleBreath {
+      0%, 100% { opacity: 0.85; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.015); }
+    }
+    .rest-breathing {
+      animation: gentleBreath 4s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-3 sm:p-5 select-none transition-colors duration-200" style="background-color: var(--bg-main); color: var(--text-main);">
+
+  <!-- Gaze Pointer Simulation Overlay -->
+  <div id="gazeReticle" class="w-10 h-10 rounded-full border-2 border-amber-400 flex items-center justify-center opacity-90 shadow-lg" style="box-shadow: 0 0 15px var(--accent-glow);">
+    <div id="reticleCenterDot" class="w-2 h-2 rounded-full bg-amber-400"></div>
+    <svg class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none">
+      <circle id="cursorDwellCircle" stroke="var(--accent)" stroke-width="3" fill="transparent" r="16" cx="20" cy="20" stroke-dasharray="100.5" stroke-dashoffset="100.5"></circle>
+    </svg>
+  </div>
+
+  <!-- Top Bar: Header, Language Selector & Primary Controls -->
+  <header class="max-w-7xl mx-auto w-full flex flex-col sm:flex-row items-center justify-between gap-3 pb-3 border-b" style="border-color: var(--border-card);">
+    <div class="flex items-center gap-3">
+      <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl shadow-md border" style="background-color: var(--bg-card); border-color: var(--border-card);">
+        🇩🇰
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 id="headerTitle" class="text-xl sm:text-2xl font-black tracking-tight" style="color: var(--text-main);">
+            GazeVoice AAC • Dansk Phonics
+          </h1>
+          <span class="text-[11px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border-emerald-500/40">
+            Dansk (Æ, Ø, Å)
+          </span>
+        </div>
+        <p id="headerSubtitle" class="text-xs" style="color: var(--text-muted);">
+          Musen simulerer øjenblik • Dwell-udvælgelse • Danske bogstavlyde og sammensmeltninger
+        </p>
+      </div>
+    </div>
+
+    <!-- Quick Status & Controls Toolbar -->
+    <div class="flex items-center flex-wrap gap-2 text-xs">
+      <!-- Language Selector -->
+      <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-card);">
+        <span style="color: var(--text-muted);">🌐 Sprog:</span>
+        <select id="langSelect" class="bg-transparent font-bold focus:outline-none cursor-pointer" style="color: var(--accent);">
+          <option value="da" selected>🇩🇰 Dansk</option>
+          <option value="en">🇬🇧 English</option>
+        </select>
+      </div>
+
+      <!-- Voice Mode Button (Phonics Sound vs Letter Name) -->
+      <button id="btnVoiceMode" class="gaze-target relative overflow-hidden px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 border shadow-sm transition" style="background-color: var(--bg-card); border-color: var(--border-card); color: var(--accent);">
+        <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="var(--accent-glow)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
+        </svg>
+        <span id="voiceModeIcon">🗣️</span>
+        <span id="voiceModeLabel">Bogstavlyd (/æ/)</span>
+      </button>
+
+      <!-- Dwell Preset Dropdown -->
+      <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-card);">
+        <span style="color: var(--text-muted);">⏱️ Dwell:</span>
+        <select id="dwellSelect" class="bg-transparent font-bold focus:outline-none cursor-pointer" style="color: var(--accent);">
+          <option value="500">0.5s (Hurtig)</option>
+          <option value="800" selected>0.8s (Standard)</option>
+          <option value="1200">1.2s (Rolig)</option>
+          <option value="1600">1.6s (Langsom)</option>
+          <option value="2000">2.0s (Træning)</option>
+        </select>
+      </div>
+
+      <!-- Theme Switcher -->
+      <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-card);">
+        <span style="color: var(--text-muted);">🎨 Tema:</span>
+        <select id="themeSelect" class="bg-transparent font-bold focus:outline-none cursor-pointer" style="color: var(--accent);">
+          <option value="theme-default">Mørk Navy</option>
+          <option value="theme-yellow-black">Høj Kontrast Gul/Sort</option>
+          <option value="theme-light-contrast">Klar Lys Kontrast</option>
+          <option value="theme-sensory-calm">Rolig Mint</option>
+        </select>
+      </div>
+
+      <!-- Settings Dialog Trigger -->
+      <button id="btnOpenSettings" class="gaze-target relative overflow-hidden px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 border shadow-sm transition" style="background-color: var(--bg-card); border-color: var(--border-card); color: var(--text-main);">
+        <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="var(--accent-glow)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
+        </svg>
+        <span>⚙️</span>
+        <span id="settingsBtnLabel">Indstillinger</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- PINNED CUSTOMIZABLE QUICK WORDS BAR (Kerneord) -->
+  <section class="max-w-7xl mx-auto w-full my-2.5">
+    <div class="rounded-2xl p-2.5 sm:p-3 border-2 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5 transition-colors" style="background-color: var(--bg-card); border-color: var(--border-card);">
+      <div class="flex items-center gap-2">
+        <span id="quickWordsTitle" class="text-xs uppercase font-extrabold tracking-wider px-2 py-1 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+          <span>⚡</span> Kerneord
+        </span>
+      </div>
+
+      <!-- Dynamic Quick Words Chips -->
+      <div id="quickWordsContainer" class="flex items-center flex-wrap gap-2 flex-1"></div>
+
+      <!-- Customize Quick Words Button -->
+      <button id="btnEditQuickWords" class="gaze-target relative overflow-hidden text-xs font-bold px-3 py-1.5 rounded-xl border flex items-center gap-1.5 shadow-sm transition" style="background-color: var(--bg-main); border-color: var(--border-card); color: var(--text-muted);">
+        <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="var(--accent-glow)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
+        </svg>
+        <span>✏️</span>
+        <span id="editQuickWordsLabel">Rediger Kerneord</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Digraph / Blend Notification Banner (e.g. E + J -> /aɪ/ or H + V -> /v/) -->
+  <div id="blendBanner" class="max-w-7xl mx-auto w-full mb-2 px-4 py-1.5 rounded-xl border flex items-center justify-between text-xs sm:text-sm font-semibold transition-all duration-300 opacity-0 -translate-y-2 pointer-events-none" style="background-color: rgba(168, 85, 247, 0.15); border-color: var(--highlight-blend); color: var(--text-main);">
+    <div class="flex items-center gap-2">
+      <span class="text-xl">✨</span>
+      <span id="blendText">Lydsammenfald opdaget!</span>
+    </div>
+    <span id="blendBadge" class="text-[11px] font-mono px-2 py-0.5 rounded bg-purple-500/30 text-purple-200 border border-purple-400/40">Fonetik</span>
+  </div>
+
+  <!-- Sentence Construction & Action Output Bar -->
+  <main class="max-w-7xl mx-auto w-full flex-1 flex flex-col gap-2.5">
+    <div class="rounded-2xl p-3.5 sm:p-4 border-2 shadow-xl flex flex-col md:flex-row items-center justify-between gap-3 transition-colors" style="background-color: var(--bg-card); border-color: var(--border-card);">
+      
+      <div class="flex items-center gap-3 w-full md:w-auto flex-1">
+        <div class="flex flex-col items-center justify-center px-3 py-2 rounded-xl text-center min-w-[75px]" style="background-color: var(--bg-main); border: 1px solid var(--border-card);">
+          <span id="sentenceLabel" class="text-[10px] font-bold uppercase tracking-wider" style="color: var(--text-muted);">Sætning</span>
+          <span id="wordEmoji" class="text-3xl mt-0.5">💬</span>
+        </div>
+
+        <div class="flex-1 flex flex-col gap-1 min-w-0">
+          <div id="wordDisplay" class="min-h-[54px] flex items-center gap-2 text-2xl sm:text-3xl font-black tracking-wider px-4 py-1.5 rounded-xl border flex-wrap overflow-hidden" style="background-color: var(--bg-main); border-color: var(--border-card); color: var(--text-main);">
+            <span id="wordDisplayPlaceholder" class="text-slate-500 text-sm sm:text-base font-normal tracking-normal italic">Kig på bogstaver eller kerneord for at tale...</span>
+          </div>
+          <div id="phoneticBreakdown" class="text-xs font-mono px-2 py-0.5 rounded text-purple-300 font-semibold flex items-center gap-1.5">
+            <span id="phonemeLabel">Bogstavlyde:</span>
+            <span id="phoneticSoundList" class="text-purple-200 italic">Ingen</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons with Dwell Support -->
+      <div class="flex items-center flex-wrap gap-2 w-full md:w-auto justify-end">
+        <button id="btnSoundOut" class="gaze-target relative group overflow-hidden text-white font-extrabold px-3.5 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition text-sm border border-purple-400/50" style="background: linear-gradient(135deg, #7c3aed, #a855f7);">
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="rgba(255,255,255,0.3)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
+          </svg>
+          <span class="text-base">🎶</span>
+          <span id="btnSoundOutLabel">Lydord</span>
+        </button>
+
+        <button id="btnSpeakWord" class="gaze-target relative group overflow-hidden text-white font-extrabold px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition text-sm border border-emerald-400/50" style="background: linear-gradient(135deg, #059669, #10b981);">
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="rgba(255,255,255,0.3)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
+          </svg>
+          <span class="text-base">🔊</span>
+          <span id="btnSpeakAllLabel">Sig Alt</span>
+        </button>
+
+        <button id="btnBackspace" class="gaze-target relative group overflow-hidden font-bold px-3 py-2.5 rounded-xl transition text-sm flex items-center gap-1.5 border" style="background-color: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="rgba(245, 158, 11, 0.3)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
+          </svg>
+          <span>⌫</span>
+          <span id="btnBackLabel">Slet</span>
+        </button>
+
+        <button id="btnClear" class="gaze-target relative group overflow-hidden font-bold px-3 py-2.5 rounded-xl transition text-sm flex items-center gap-1.5 border" style="background-color: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #f87171;">
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="rgba(239, 68, 68, 0.3)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
+          </svg>
+          <span>🗑️</span>
+          <span id="btnClearLabel">Ryd</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- EYE REST & THINKING ZONE (Hvilezone) -->
+    <section id="restZone" class="rounded-2xl p-3 border-2 border-dashed shadow-inner flex items-center justify-between gap-4 transition-all" style="background-color: var(--rest-zone-bg); border-color: var(--rest-zone-border);">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-2xl rest-breathing" style="background-color: var(--bg-card); border: 1px solid var(--border-card);">
+          💤
+        </div>
+        <div>
+          <div class="font-bold text-sm flex items-center gap-2" style="color: var(--text-main);">
+            <span id="restZoneTitle">Hvile- & Tænkezone</span>
+            <span id="restStatusBadge" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30">
+              Sikker Zone (Ingen klik)
+            </span>
+          </div>
+          <p id="restZoneDesc" class="text-xs" style="color: var(--text-muted);">
+            Placer øjenblikket her for at hvile øjnene, tænke eller lytte uden at aktivere knapper.
+          </p>
+        </div>
+      </div>
+      <div class="hidden sm:flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-card); color: var(--text-muted);">
+        <span>🌙 Øjne Hviler</span>
+      </div>
+    </section>
+
+    <!-- Smart Word Prediction Bar -->
+    <div class="rounded-xl p-2.5 border flex flex-col sm:flex-row items-start sm:items-center gap-2 transition-colors" style="background-color: var(--bg-card); border-color: var(--border-card);">
+      <div class="flex items-center gap-1.5 text-xs font-bold px-2 py-1 rounded-md" style="background-color: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4);">
+        <span>💡</span>
+        <span id="predictionsLabel">Ordforslag:</span>
+      </div>
+      <div id="predictionsList" class="flex items-center gap-2 flex-wrap flex-1 min-h-[32px]">
+        <span id="predictionsPlaceholder" class="text-xs italic" style="color: var(--text-muted);">Skriv bogstaver for at se forslag her</span>
+      </div>
+    </div>
+
+    <!-- Letter Grid & Accessible Spacebar Container -->
+    <div class="flex-1 flex flex-col gap-2.5">
+      <div id="gridContainer" class="flex-1 grid gap-2 sm:gap-2.5 transition-all min-h-[290px]"></div>
+
+      <!-- ACCESSIBLE FULL-WIDTH SPACEBAR -->
+      <div class="w-full flex justify-center">
+        <button id="btnSpacebar" class="gaze-target relative group overflow-hidden w-full max-w-2xl py-3 px-6 rounded-2xl border-2 font-black flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer" style="background-color: var(--bg-card); border-color: var(--border-card); color: var(--text-main);">
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="var(--accent-glow)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
+          </svg>
+          <span class="text-xl">␣</span>
+          <span id="spacebarLabel" class="text-sm sm:text-base tracking-widest uppercase">MELLEMRUM (Nyt Ord i Sætning)</span>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Quick Words Customizer Modal -->
+  <div id="quickWordsModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="max-w-md w-full rounded-2xl p-6 border shadow-2xl flex flex-col gap-4" style="background-color: var(--bg-card); border-color: var(--border-card); color: var(--text-main);">
+      <div class="flex items-center justify-between border-b pb-3" style="border-color: var(--border-card);">
+        <h2 class="text-base font-black flex items-center gap-2">
+          <span>⚡</span> <span id="modalQWTitle">Rediger Faste Kerneord</span>
+        </h2>
+        <button id="btnCloseQuickWords" class="text-xl font-bold px-2.5 py-1 rounded-lg hover:bg-white/10">&times;</button>
+      </div>
+
+      <p id="modalQWDesc" class="text-xs" style="color: var(--text-muted);">
+        Tilføj ord som barnet kan sige hurtigt med et enkelt blik.
+      </p>
+
+      <div class="flex gap-2">
+        <input type="text" id="newWordInput" placeholder="Nyt ord (f.eks. VAND)" class="flex-1 px-3 py-2 rounded-xl border bg-transparent font-bold text-sm focus:outline-none uppercase" style="border-color: var(--border-card); color: var(--text-main);">
+        <input type="text" id="newEmojiInput" placeholder="Emoji 💧" class="w-20 px-3 py-2 rounded-xl border bg-transparent font-bold text-sm focus:outline-none text-center" style="border-color: var(--border-card); color: var(--text-main);">
+        <button id="btnAddQuickWord" class="px-4 py-2 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition text-sm">
+          Tilføj
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-1.5 max-h-56 overflow-y-auto pr-1">
+        <label class="font-bold text-xs" id="currentQWLabel">Nuværende Kerneord:</label>
+        <div id="quickWordsEditList" class="flex flex-col gap-1.5"></div>
+      </div>
+
+      <div class="flex justify-between items-center pt-2 border-t" style="border-color: var(--border-card);">
+        <button id="btnResetQuickWords" class="text-xs text-rose-400 hover:underline">
+          Nulstil til Standard
+        </button>
+        <button id="btnSaveQuickWords" class="px-5 py-2 rounded-xl font-bold text-white bg-amber-500 hover:bg-amber-600 transition text-sm">
+          Gem & Luk
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accessibility Settings Modal -->
+  <div id="settingsModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="max-w-lg w-full rounded-2xl p-6 border shadow-2xl flex flex-col gap-5" style="background-color: var(--bg-card); border-color: var(--border-card); color: var(--text-main);">
+      <div class="flex items-center justify-between border-b pb-3" style="border-color: var(--border-card);">
+        <h2 class="text-lg font-black flex items-center gap-2">
+          <span>⚙️</span> <span id="settingsModalTitle">Indstillinger for Øjenstyring</span>
+        </h2>
+        <button id="btnCloseSettings" class="text-xl font-bold px-2.5 py-1 rounded-lg hover:bg-white/10">&times;</button>
+      </div>
+
+      <div class="flex flex-col gap-4 text-xs sm:text-sm">
+        <div class="flex flex-col gap-1.5">
+          <label class="font-bold" id="layoutSettingLabel">Tastaturopsætning:</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button class="layout-btn px-3 py-2 rounded-xl border text-center font-bold transition" data-layout="alphabet">
+              Alfabet (A-Å)
+            </button>
+            <button class="layout-btn px-3 py-2 rounded-xl border text-center font-bold transition" data-layout="phonics-order">
+              Lydrækkefølge
+            </button>
+            <button class="layout-btn px-3 py-2 rounded-xl border text-center font-bold transition" data-layout="starter">
+              Start (Store mål)
+            </button>
+          </div>
+          <span class="text-[11px]" style="color: var(--text-muted);" id="layoutSettingHint">Alfabetisk rækkefølge med Æ, Ø, Å.</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="font-bold" id="pitchLabel">Stemmetone (Pitch):</label>
+            <input type="range" id="pitchSlider" min="0.8" max="1.6" step="0.1" value="1.15" class="accent-amber-400">
+            <span class="text-[10px]" style="color: var(--text-muted);" id="pitchHint">Lysere tone lyder venligere for børn.</span>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="font-bold" id="rateLabel">Talehastighed (Rate):</label>
+            <input type="range" id="rateSlider" min="0.6" max="1.2" step="0.05" value="0.85" class="accent-amber-400">
+            <span class="text-[10px]" style="color: var(--text-muted);" id="rateHint">Rolig hastighed hjælper fonetisk forståelse.</span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between p-3 rounded-xl border" style="border-color: var(--border-card); background-color: var(--bg-main);">
+          <div>
+            <div class="font-bold" id="autoBlendTitle">Automatisk Lydsammenfald (Blends)</div>
+            <div class="text-[11px]" style="color: var(--text-muted);" id="autoBlendDesc">Bogstaver smelter sammen til lyde (f.eks. H+V = /v/, E+J = /aɪ/)</div>
+          </div>
+          <input type="checkbox" id="toggleBlending" checked class="w-5 h-5 accent-purple-500 cursor-pointer">
+        </div>
+      </div>
+
+      <div class="pt-2 flex justify-end">
+        <button id="btnSaveSettings" class="px-5 py-2 rounded-xl font-bold text-white bg-amber-500 hover:bg-amber-600 transition">
+          Færdig
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =====================================================================
+       1. MULTI-LANGUAGE DICTIONARIES (DANISH 🇩🇰 & ENGLISH 🇬🇧)
+       ===================================================================== */
+    const danishPhonics = {
+      'A': { sound: 'a', ipa: '/æ/', word: 'Abe', icon: '🐒' },
+      'B': { sound: 'b', ipa: '/b/', word: 'Bold', icon: '⚽' },
+      'C': { sound: 'ss', ipa: '/s/', word: 'Cykel', icon: '🚲' },
+      'D': { sound: 'd', ipa: '/d/', word: 'Delfin', icon: '🐬' },
+      'E': { sound: 'e', ipa: '/e/', word: 'Elefant', icon: '🐘' },
+      'F': { sound: 'ff', ipa: '/f/', word: 'Fisk', icon: '🐟' },
+      'G': { sound: 'g', ipa: '/ɡ/', word: 'Gris', icon: '🐷' },
+      'H': { sound: 'h', ipa: '/h/', word: 'Hest', icon: '🐴' },
+      'I': { sound: 'i', ipa: '/i/', word: 'Is', icon: '🍦' },
+      'J': { sound: 'j', ipa: '/j/', word: 'Jordbær', icon: '🍓' },
+      'K': { sound: 'k', ipa: '/k/', word: 'Kat', icon: '🐱' },
+      'L': { sound: 'll', ipa: '/l/', word: 'Løve', icon: '🦁' },
+      'M': { sound: 'mm', ipa: '/m/', word: 'Mus', icon: '🐭' },
+      'N': { sound: 'nn', ipa: '/n/', word: 'Næsehorn', icon: '🪺' },
+      'O': { sound: 'o', ipa: '/o/', word: 'Ost', icon: '🧀' },
+      'P': { sound: 'p', ipa: '/p/', word: 'Pære', icon: '🍐' },
+      'Q': { sound: 'k', ipa: '/k/', word: 'Quiz', icon: '❓' },
+      'R': { sound: 'rr', ipa: '/ʁ/', word: 'Ræv', icon: '🦊' },
+      'S': { sound: 'ss', ipa: '/s/', word: 'Sol', icon: '☀️' },
+      'T': { sound: 't', ipa: '/t/', word: 'Tog', icon: '🚂' },
+      'U': { sound: 'u', ipa: '/u/', word: 'Ugle', icon: '🦉' },
+      'V': { sound: 'vv', ipa: '/v/', word: 'Vand', icon: '💧' },
+      'W': { sound: 'vv', ipa: '/v/', word: 'Weekend', icon: '🏖️' },
+      'X': { sound: 'ks', ipa: '/ks/', word: 'Xylofon', icon: '🎵' },
+      'Y': { sound: 'y', ipa: '/y/', word: 'Yoghurt', icon: '🥣' },
+      'Z': { sound: 'ss', ipa: '/s/', word: 'Zebra', icon: '🦓' },
+      // Danish Special Vowels:
+      'Æ': { sound: 'æ', ipa: '/ɛː/', word: 'Æble', icon: '🍎' },
+      'Ø': { sound: 'ø', ipa: '/øː/', word: 'Øje', icon: '👁️' },
+      'Å': { sound: 'å', ipa: '/ɔː/', word: 'Ål', icon: '🐟' }
+    };
+
+    const danishBlends = {
+      'HV': { spoken: 'v', ipa: '/v/', label: 'Stumt H i HV (/v/)', sample: 'hval, hvad', icon: '🐋' },
+      'HJ': { spoken: 'j', ipa: '/j/', label: 'Stumt H i HJ (/j/)', sample: 'hjul, hjerte', icon: '❤️' },
+      'EJ': { spoken: 'aj', ipa: '/aɪ/', label: 'EJ (/aɪ/)', sample: 'leg, vej', icon: '🎮' },
+      'ØJ': { spoken: 'øj', ipa: '/ʌɪ/', label: 'ØJ (/ʌɪ/)', sample: 'tøj, øje', icon: '👕' },
+      'AJ': { spoken: 'aj', ipa: '/aɪ/', label: 'AJ (/aɪ/)', sample: 'kage, maj', icon: '🍰' },
+      'SK': { spoken: 'sk', ipa: '/sɡ̊/', label: 'SK (/sɡ̊/)', sample: 'skib, sko', icon: '🚢' },
+      'ST': { spoken: 'st', ipa: '/sd̥/', label: 'ST (/sd̥/)', sample: 'stol, stor', icon: '🪑' },
+      'SP': { spoken: 'sp', ipa: '/sb̥/', label: 'SP (/sb̥/)', sample: 'spise, spil', icon: '🍽️' },
+      'SJ': { spoken: 'sj', ipa: '/ɕ/', label: 'SJ (/ɕ/)', sample: 'sjov', icon: '🎉' },
+      'NG': { spoken: 'ng', ipa: '/ŋ/', label: 'NG (/ŋ/)', sample: 'ring, sang', icon: '💍' }
+    };
+
+    const danishWords = {
+      'KAT': { icon: '🐱', phonemes: ['/k/', '/æ/', '/t/'] },
+      'HUND': { icon: '🐶', phonemes: ['/h/', '/u/', '/n/'] },
+      'SOL': { icon: '☀️', phonemes: ['/s/', '/oː/', '/l/'] },
+      'IS': { icon: '🍦', phonemes: ['/iː/', '/s/'] },
+      'BIL': { icon: '🚗', phonemes: ['/b/', '/iː/', '/l/'] },
+      'TOG': { icon: '🚂', phonemes: ['/t/', '/oː/', '/w/'] },
+      'MAD': { icon: '🍲', phonemes: ['/m/', '/æ/', '/ð/'] },
+      'VAND': { icon: '💧', phonemes: ['/v/', '/æ/', '/n/'] },
+      'HUS': { icon: '🏠', phonemes: ['/h/', '/uː/', '/s/'] },
+      'ÆBLE': { icon: '🍎', phonemes: ['/ɛː/', '/b/', '/l/', '/ə/'] },
+      'ØJE': { icon: '👁️', phonemes: ['/ʌɪ/', '/ə/'] },
+      'BOG': { icon: '📖', phonemes: ['/b/', '/oː/', '/w/'] },
+      'BOLD': { icon: '⚽', phonemes: ['/b/', '/ɔ/', '/l/'] },
+      'FISK': { icon: '🐟', phonemes: ['/f/', '/e/', '/sɡ̊/'] },
+      'SKIB': { icon: '🚢', phonemes: ['/sɡ̊/', '/iː/', '/b/'] },
+      'HVAL': { icon: '🐋', phonemes: ['/v/', '/æː/', '/l/'] },
+      'MOR': { icon: '👩', phonemes: ['/m/', '/oː/', '/ʁ/'] },
+      'FAR': { icon: '👨', phonemes: ['/f/', '/ɑː/', '/ʁ/'] },
+      'JA': { icon: '👍', phonemes: ['/j/', '/æ/'] },
+      'NEJ': { icon: '👎', phonemes: ['/n/', '/aɪ/'] },
+      'TAK': { icon: '🙏', phonemes: ['/t/', '/æ/', '/ɡ̊/'] },
+      'HJÆLP': { icon: '🙋', phonemes: ['/j/', '/ɛː/', '/l/', '/b/'] }
+    };
+
+    const danishDefaultQuickWords = [
+      { text: 'JA', emoji: '👍', speech: 'Ja' },
+      { text: 'NEJ', emoji: '👎', speech: 'Nej' },
+      { text: 'HJÆLP', emoji: '🙋', speech: 'Hjælp mig' },
+      { text: 'TAK', emoji: '🙏', speech: 'Tak' },
+      { text: 'STOP', emoji: '🛑', speech: 'Stop' },
+      { text: 'MERE', emoji: '➕', speech: 'Mere tak' },
+      { text: 'JEG VIL', emoji: '💬', speech: 'Jeg vil gerne have' },
+      { text: 'VAND', emoji: '💧', speech: 'Vand' }
+    ];
+
+    // English Fallback Dataset
+    const englishPhonics = {
+      'A': { sound: 'ah', ipa: '/æ/', word: 'Apple', icon: '🍎' },
+      'B': { sound: 'buh', ipa: '/b/', word: 'Ball', icon: '⚽' },
+      'C': { sound: 'kuh', ipa: '/k/', word: 'Cat', icon: '🐱' },
+      'D': { sound: 'duh', ipa: '/d/', word: 'Dog', icon: '🐶' },
+      'E': { sound: 'eh', ipa: '/ɛ/', word: 'Egg', icon: '🥚' },
+      'F': { sound: 'fuh', ipa: '/f/', word: 'Fish', icon: '🐟' },
+      'G': { sound: 'guh', ipa: '/ɡ/', word: 'Girl', icon: '👧' },
+      'H': { sound: 'huh', ipa: '/h/', word: 'Hat', icon: '🎩' },
+      'I': { sound: 'ih', ipa: '/ɪ/', word: 'Igloo', icon: '🧊' },
+      'J': { sound: 'juh', ipa: '/dʒ/', word: 'Juice', icon: '🧃' },
+      'K': { sound: 'kuh', ipa: '/k/', word: 'Kite', icon: '🪁' },
+      'L': { sound: 'luh', ipa: '/l/', word: 'Lion', icon: '🦁' },
+      'M': { sound: 'muh', ipa: '/m/', word: 'Monkey', icon: '🐵' },
+      'N': { sound: 'nuh', ipa: '/n/', word: 'Nest', icon: '🪺' },
+      'O': { sound: 'aw', ipa: '/ɒ/', word: 'Octopus', icon: '🐙' },
+      'P': { sound: 'puh', ipa: '/p/', word: 'Pig', icon: '🐷' },
+      'Q': { sound: 'kwuh', ipa: '/kw/', word: 'Queen', icon: '👑' },
+      'R': { sound: 'ruh', ipa: '/r/', word: 'Rainbow', icon: '🌈' },
+      'S': { sound: 'suh', ipa: '/s/', word: 'Sun', icon: '☀️' },
+      'T': { sound: 'tuh', ipa: '/t/', word: 'Tiger', icon: '🐯' },
+      'U': { sound: 'uh', ipa: '/ʌ/', word: 'Umbrella', icon: '☂️' },
+      'V': { sound: 'vuh', ipa: '/v/', word: 'Van', icon: '🚐' },
+      'W': { sound: 'wuh', ipa: '/w/', word: 'Water', icon: '💧' },
+      'X': { sound: 'ks', ipa: '/ks/', word: 'Box', icon: '📦' },
+      'Y': { sound: 'yuh', ipa: '/j/', word: 'Yo-yo', icon: '🪀' },
+      'Z': { sound: 'zuh', ipa: '/z/', word: 'Zebra', icon: '🦓' }
+    };
+
+    const englishBlends = {
+      'EA': { spoken: 'ee', ipa: '/iː/', label: 'Long E (/iː/)', sample: 'eat, tea', icon: '🍽️' },
+      'EE': { spoken: 'ee', ipa: '/iː/', label: 'Double E (/iː/)', sample: 'see, tree', icon: '🌳' },
+      'CH': { spoken: 'ch', ipa: '/tʃ/', label: 'CH (/tʃ/)', sample: 'chat, cheese', icon: '🧀' },
+      'SH': { spoken: 'sh', ipa: '/ʃ/', label: 'SH (/ʃ/)', sample: 'ship, shoe', icon: '🚢' },
+      'TH': { spoken: 'th', ipa: '/θ/', label: 'TH (/θ/)', sample: 'thumb, think', icon: '👍' },
+      'OO': { spoken: 'ooo', ipa: '/uː/', label: 'OO (/uː/)', sample: 'moon', icon: '🌙' }
+    };
+
+    const englishWords = {
+      'CAT': { icon: '🐱', phonemes: ['/k/', '/æ/', '/t/'] },
+      'DOG': { icon: '🐶', phonemes: ['/d/', '/ɒ/', '/ɡ/'] },
+      'EAT': { icon: '🍽️', phonemes: ['/iː/', '/t/'] },
+      'SUN': { icon: '☀️', phonemes: ['/s/', '/ʌ/', '/n/'] },
+      'HAT': { icon: '🎩', phonemes: ['/h/', '/æ/', '/t/'] },
+      'BALL': { icon: '⚽', phonemes: ['/b/', '/ɔː/', '/l/'] },
+      'MILK': { icon: '🥛', phonemes: ['/m/', '/ɪ/', '/l/', '/k/'] },
+      'WATER': { icon: '💧', phonemes: ['/w/', '/ɔː/', '/t/', '/ər/'] }
+    };
+
+    const englishDefaultQuickWords = [
+      { text: 'YES', emoji: '👍', speech: 'Yes' },
+      { text: 'NO', emoji: '👎', speech: 'No' },
+      { text: 'HELP', emoji: '🙋', speech: 'Help please' },
+      { text: 'PLEASE', emoji: '🙏', speech: 'Please' },
+      { text: 'THANK YOU', emoji: '💖', speech: 'Thank you' },
+      { text: 'STOP', emoji: '🛑', speech: 'Stop' },
+      { text: 'MORE', emoji: '➕', speech: 'More please' },
+      { text: 'I WANT', emoji: '💬', speech: 'I want' }
+    ];
+
+    /* =====================================================================
+       2. APPLICATION STATE
+       ===================================================================== */
+    let currentLang = 'da'; // 'da' | 'en'
+    let currentSentence = '';
+    let voiceMode = 'phonics'; // 'phonics' | 'letter'
+    let dwellDuration = 800; // ms
+    let currentLayout = 'alphabet';
+    let autoBlendEnabled = true;
+    let voicePitch = 1.15;
+    let voiceRate = 0.85;
+
+    let activeDwellTarget = null;
+    let dwellStartTime = 0;
+    let isCoolingDown = false;
+    let isRestingEyes = false;
+    let lastSpokenText = '';
+    let lastSpokenTime = 0;
+
+    let quickWords = JSON.parse(localStorage.getItem('gaze_quick_words_' + currentLang) || 'null') || danishDefaultQuickWords;
+
+    /* =====================================================================
+       3. DOM ELEMENTS
+       ===================================================================== */
+    const langSelect = document.getElementById('langSelect');
+    const headerTitle = document.getElementById('headerTitle');
+    const headerSubtitle = document.getElementById('headerSubtitle');
+    const gazeReticle = document.getElementById('gazeReticle');
+    const reticleCenterDot = document.getElementById('reticleCenterDot');
+    const cursorDwellCircle = document.getElementById('cursorDwellCircle');
+    const gridContainer = document.getElementById('gridContainer');
+    const wordDisplay = document.getElementById('wordDisplay');
+    const wordEmoji = document.getElementById('wordEmoji');
+    const phoneticSoundList = document.getElementById('phoneticSoundList');
+    const blendBanner = document.getElementById('blendBanner');
+    const blendText = document.getElementById('blendText');
+    const predictionsList = document.getElementById('predictionsList');
+    const restZone = document.getElementById('restZone');
+    const restStatusBadge = document.getElementById('restStatusBadge');
+
+    const quickWordsContainer = document.getElementById('quickWordsContainer');
+    const btnEditQuickWords = document.getElementById('btnEditQuickWords');
+    const quickWordsModal = document.getElementById('quickWordsModal');
+    const btnCloseQuickWords = document.getElementById('btnCloseQuickWords');
+    const btnSaveQuickWords = document.getElementById('btnSaveQuickWords');
+    const btnResetQuickWords = document.getElementById('btnResetQuickWords');
+    const quickWordsEditList = document.getElementById('quickWordsEditList');
+    const newWordInput = document.getElementById('newWordInput');
+    const newEmojiInput = document.getElementById('newEmojiInput');
+    const btnAddQuickWord = document.getElementById('btnAddQuickWord');
+
+    const btnVoiceMode = document.getElementById('btnVoiceMode');
+    const voiceModeIcon = document.getElementById('voiceModeIcon');
+    const voiceModeLabel = document.getElementById('voiceModeLabel');
+    const dwellSelect = document.getElementById('dwellSelect');
+    const themeSelect = document.getElementById('themeSelect');
+    const btnOpenSettings = document.getElementById('btnOpenSettings');
+    const settingsModal = document.getElementById('settingsModal');
+    const btnCloseSettings = document.getElementById('btnCloseSettings');
+    const btnSaveSettings = document.getElementById('btnSaveSettings');
+
+    const btnSoundOut = document.getElementById('btnSoundOut');
+    const btnSpeakWord = document.getElementById('btnSpeakWord');
+    const btnBackspace = document.getElementById('btnBackspace');
+    const btnClear = document.getElementById('btnClear');
+    const btnSpacebar = document.getElementById('btnSpacebar');
+    const spacebarLabel = document.getElementById('spacebarLabel');
+
+    const pitchSlider = document.getElementById('pitchSlider');
+    const rateSlider = document.getElementById('rateSlider');
+    const toggleBlending = document.getElementById('toggleBlending');
+
+    function getActiveDataset() {
+      if (currentLang === 'da') {
+        return { phonics: danishPhonics, blends: danishBlends, words: danishWords };
+      }
+      return { phonics: englishPhonics, blends: englishBlends, words: englishWords };
+    }
+
+    /* =====================================================================
+       4. SPEECH ENGINE WITH DANISH (DA-DK) & ENGLISH VOICE SELECTION
+       ===================================================================== */
+    function speakUtterance(text, pitch = voicePitch, rate = voiceRate) {
+      if (!('speechSynthesis' in window)) return;
+
+      const now = performance.now();
+      if (text === lastSpokenText && (now - lastSpokenTime) < 260) {
+        return;
+      }
+      lastSpokenText = text;
+      lastSpokenTime = now;
+
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.pitch = pitch;
+      utterance.rate = rate;
+
+      const voices = window.speechSynthesis.getVoices();
+      if (currentLang === 'da') {
+        utterance.lang = 'da-DK';
+        // Pick Danish voice (e.g. Sara, Magnus, or Google dansk)
+        const daVoice = voices.find(v => v.lang.startsWith('da') || v.lang.includes('DK') || v.name.includes('Sara') || v.name.includes('Magnus'));
+        if (daVoice) utterance.voice = daVoice;
+      } else {
+        utterance.lang = 'en-US';
+        const enVoice = voices.find(v => v.lang.startsWith('en') && 
+          (v.name.includes('Samantha') || v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Junior')));
+        if (enVoice) utterance.voice = enVoice;
+      }
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function playChime(freq = 520, type = 'sine') {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.15);
+      } catch (e) {}
+    }
+
+    function getCurrentWord() {
+      const parts = currentSentence.split(' ');
+      return parts[parts.length - 1] || '';
+    }
+
+    function segmentWordIntoPhonemes(word) {
+      const { phonics, blends } = getActiveDataset();
+      const segments = [];
+      let i = 0;
+      while (i < word.length) {
+        if (i + 1 < word.length) {
+          const pair = word.substr(i, 2);
+          if (blends[pair]) {
+            segments.push({ text: pair, isBlend: true, data: blends[pair] });
+            i += 2;
+            continue;
+          }
+        }
+        const char = word[i];
+        segments.push({ text: char, isBlend: false, data: phonics[char] || { sound: char, ipa: `/${char.toLowerCase()}/` } });
+        i += 1;
+      }
+      return segments;
+    }
+
+    async function soundOutWord() {
+      const targetWord = getCurrentWord() || currentSentence.trim();
+      if (!targetWord) {
+        speakUtterance(currentLang === 'da' ? "Vælg bogstaver først!" : "Pick letters first!");
+        return;
+      }
+
+      const segments = segmentWordIntoPhonemes(targetWord);
+      for (let s of segments) {
+        const spoken = s.isBlend ? s.data.spoken : s.data.sound;
+        playChime(640, 'triangle');
+        speakUtterance(spoken, voicePitch + 0.1, 0.75);
+        showBlendBanner(`${currentLang === 'da' ? 'Lyder som' : 'Flowing'}: ${s.text} (${s.data.ipa})`);
+        await new Promise(r => setTimeout(r, 650));
+      }
+
+      await new Promise(r => setTimeout(r, 300));
+      playChime(880, 'sine');
+      speakUtterance(targetWord, voicePitch, voiceRate);
+      showBlendBanner(`✨ ${currentLang === 'da' ? 'Ordet er' : 'Word'}: ${targetWord}!`);
+    }
+
+    function showBlendBanner(msg) {
+      blendText.innerHTML = msg;
+      blendBanner.style.opacity = '1';
+      blendBanner.style.transform = 'translateY(0)';
+      setTimeout(() => {
+        blendBanner.style.opacity = '0';
+        blendBanner.style.transform = 'translateY(-8px)';
+      }, 2500);
+    }
+
+    /* =====================================================================
+       5. EYE REST ZONE LOGIC
+       ===================================================================== */
+    restZone.addEventListener('mouseenter', () => {
+      isRestingEyes = true;
+      gazeReticle.style.borderColor = '#38bdf8';
+      reticleCenterDot.style.backgroundColor = '#38bdf8';
+      gazeReticle.style.boxShadow = '0 0 20px rgba(56, 189, 248, 0.5)';
+      cursorDwellCircle.style.strokeDashoffset = '100.5';
+      restStatusBadge.textContent = currentLang === 'da' ? '💤 Øjnene hviler trygt' : '💤 Eyes Resting Safely';
+      restStatusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500 text-white animate-pulse';
+    });
+
+    restZone.addEventListener('mouseleave', () => {
+      isRestingEyes = false;
+      gazeReticle.style.borderColor = 'var(--accent)';
+      reticleCenterDot.style.backgroundColor = 'var(--accent)';
+      gazeReticle.style.boxShadow = '0 0 15px var(--accent-glow)';
+      restStatusBadge.textContent = currentLang === 'da' ? 'Sikker Zone (Ingen klik)' : 'Safe Zone (No Clicks)';
+      restStatusBadge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30';
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      gazeReticle.style.left = `${e.clientX}px`;
+      gazeReticle.style.top = `${e.clientY}px`;
+    });
+
+    /* =====================================================================
+       6. DWELL ENGINE
+       ===================================================================== */
+    function attachDwellListeners(element, onComplete) {
+      let animFrameId = null;
+
+      function startDwell() {
+        if (isCoolingDown || isRestingEyes) return;
+        activeDwellTarget = element;
+        dwellStartTime = performance.now();
+
+        const circle = element.querySelector('.dwell-ring-circle');
+        const rect = element.querySelector('.dwell-rect');
+
+        const circumference = 100.5;
+        let cardCircumference = 0;
+        if (circle) {
+          cardCircumference = parseFloat(circle.getAttribute('stroke-dasharray')) || 170;
+          circle.style.strokeDashoffset = cardCircumference;
+        }
+
+        function frame(now) {
+          if (isRestingEyes) {
+            cancelDwell();
+            return;
+          }
+
+          const elapsed = now - dwellStartTime;
+          const progress = Math.min(elapsed / dwellDuration, 1.0);
+
+          if (circle) {
+            circle.style.strokeDashoffset = cardCircumference * (1 - progress);
+          }
+          if (rect) {
+            rect.style.transform = `scaleX(${progress})`;
+          }
+          if (cursorDwellCircle) {
+            cursorDwellCircle.style.strokeDashoffset = circumference * (1 - progress);
+          }
+
+          if (progress < 1.0) {
+            animFrameId = requestAnimationFrame(frame);
+          } else {
+            playChime(750, 'sine');
+            onComplete();
+            cancelDwell();
+
+            isCoolingDown = true;
+            element.style.pointerEvents = 'none';
+            setTimeout(() => {
+              isCoolingDown = false;
+              element.style.pointerEvents = '';
+            }, 320);
+          }
+        }
+
+        animFrameId = requestAnimationFrame(frame);
+      }
+
+      function cancelDwell() {
+        if (animFrameId) {
+          cancelAnimationFrame(animFrameId);
+          animFrameId = null;
+        }
+        const circle = element.querySelector('.dwell-ring-circle');
+        const rect = element.querySelector('.dwell-rect');
+        if (circle) {
+          const cardCircumference = parseFloat(circle.getAttribute('stroke-dasharray')) || 170;
+          circle.style.strokeDashoffset = cardCircumference;
+        }
+        if (rect) {
+          rect.style.transform = 'scaleX(0)';
+        }
+        if (cursorDwellCircle) {
+          cursorDwellCircle.style.strokeDashoffset = '100.5';
+        }
+        activeDwellTarget = null;
+      }
+
+      element.addEventListener('mouseenter', startDwell);
+      element.addEventListener('mouseleave', cancelDwell);
+
+      element.addEventListener('click', () => {
+        cancelDwell();
+        playChime(750, 'sine');
+        onComplete();
+      });
+    }
+
+    /* =====================================================================
+       7. PINNED QUICK WORDS BAR
+       ===================================================================== */
+    function renderQuickWords() {
+      quickWordsContainer.innerHTML = '';
+      quickWords.forEach((qw) => {
+        const btn = document.createElement('button');
+        btn.className = 'gaze-target relative overflow-hidden px-3.5 py-1.5 rounded-xl border font-black text-xs sm:text-sm flex items-center gap-1.5 transition shadow-sm';
+        btn.style.backgroundColor = 'var(--bg-main)';
+        btn.style.borderColor = 'var(--border-card)';
+        btn.style.color = 'var(--text-main)';
+
+        btn.innerHTML = `
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="var(--accent-glow)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
+          </svg>
+          <span class="text-base">${qw.emoji || '💬'}</span>
+          <span>${qw.text}</span>
+        `;
+
+        attachDwellListeners(btn, () => {
+          btn.classList.add('pop-anim');
+          setTimeout(() => btn.classList.remove('pop-anim'), 300);
+
+          if (currentSentence && !currentSentence.endsWith(' ')) {
+            currentSentence += ' ';
+          }
+          currentSentence += qw.text + ' ';
+          updateSentenceUI();
+          speakUtterance(qw.speech || qw.text, voicePitch, voiceRate);
+          showBlendBanner(`Talt: <strong>${qw.text}</strong> ${qw.emoji || ''}`);
+        });
+
+        quickWordsContainer.appendChild(btn);
+      });
+    }
+
+    function renderQuickWordsEditList() {
+      quickWordsEditList.innerHTML = '';
+      quickWords.forEach((qw, idx) => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between p-2 rounded-xl border text-xs font-bold';
+        row.style.borderColor = 'var(--border-card)';
+        row.style.backgroundColor = 'var(--bg-main)';
+        row.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="text-lg">${qw.emoji || '💬'}</span>
+            <span>${qw.text}</span>
+          </div>
+          <button class="delete-qw-btn text-rose-400 hover:text-rose-300 px-2 py-0.5 rounded" data-index="${idx}">
+            ✕ Slet
+          </button>
+        `;
+        quickWordsEditList.appendChild(row);
+      });
+
+      document.querySelectorAll('.delete-qw-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.index, 10);
+          quickWords.splice(idx, 1);
+          localStorage.setItem('gaze_quick_words_' + currentLang, JSON.stringify(quickWords));
+          renderQuickWordsEditList();
+          renderQuickWords();
+        });
+      });
+    }
+
+    btnAddQuickWord.addEventListener('click', () => {
+      const text = newWordInput.value.trim().toUpperCase();
+      const emoji = newEmojiInput.value.trim() || '💬';
+      if (!text) return;
+      quickWords.push({ text, emoji, speech: text });
+      localStorage.setItem('gaze_quick_words_' + currentLang, JSON.stringify(quickWords));
+      newWordInput.value = '';
+      newEmojiInput.value = '';
+      renderQuickWordsEditList();
+      renderQuickWords();
+    });
+
+    btnResetQuickWords.addEventListener('click', () => {
+      quickWords = currentLang === 'da' ? [...danishDefaultQuickWords] : [...englishDefaultQuickWords];
+      localStorage.setItem('gaze_quick_words_' + currentLang, JSON.stringify(quickWords));
+      renderQuickWordsEditList();
+      renderQuickWords();
+    });
+
+    btnEditQuickWords.addEventListener('click', () => {
+      renderQuickWordsEditList();
+      quickWordsModal.classList.remove('hidden');
+      quickWordsModal.classList.add('flex');
+    });
+
+    btnCloseQuickWords.addEventListener('click', () => {
+      quickWordsModal.classList.add('hidden');
+      quickWordsModal.classList.remove('flex');
+    });
+
+    btnSaveQuickWords.addEventListener('click', () => {
+      quickWordsModal.classList.add('hidden');
+      quickWordsModal.classList.remove('flex');
+    });
+
+    /* =====================================================================
+       8. GRID RENDERING (WITH DANISH Æ, Ø, Å)
+       ===================================================================== */
+    const danishPhonicsOrder = [
+      'S', 'A', 'T', 'O', 'M', 'R',
+      'I', 'L', 'E', 'D', 'U', 'N',
+      'K', 'G', 'P', 'V', 'B', 'F',
+      'H', 'J', 'Y', 'C', 'X', 'Z', 'Q', 'W',
+      'Æ', 'Ø', 'Å'
+    ];
+
+    const danishStarterOrder = ['A', 'E', 'I', 'O', 'U', 'Æ', 'Ø', 'Å'];
+
+    function renderGrid() {
+      gridContainer.innerHTML = '';
+      const { phonics } = getActiveDataset();
+      let list = [];
+
+      if (currentLayout === 'phonics-order') {
+        list = danishPhonicsOrder;
+        gridContainer.className = 'flex-1 grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-7 gap-2 sm:gap-2.5';
+      } else if (currentLayout === 'starter') {
+        list = danishStarterOrder;
+        gridContainer.className = 'flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4';
+      } else {
+        list = Object.keys(phonics);
+        gridContainer.className = 'flex-1 grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-7 gap-2 sm:gap-2.5';
+      }
+
+      list.forEach(letter => {
+        const item = phonics[letter] || { sound: letter, ipa: `/${letter.toLowerCase()}/`, word: letter, icon: '🔤' };
+        const card = document.createElement('div');
+        
+        card.className = 'gaze-target relative group flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl border-2 transition-all cursor-pointer shadow-sm select-none hover:border-amber-400';
+        card.style.backgroundColor = 'var(--bg-card)';
+        card.style.borderColor = 'var(--border-card)';
+
+        const size = currentLayout === 'starter' ? 84 : 54;
+        const radius = (size / 2) - 4;
+        const circumference = 2 * Math.PI * radius;
+
+        card.innerHTML = `
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+            <svg width="${size}" height="${size}" class="dwell-ring">
+              <circle
+                class="dwell-ring-circle"
+                stroke="var(--accent)"
+                stroke-width="5"
+                stroke-linecap="round"
+                fill="transparent"
+                r="${radius}"
+                cx="${size/2}"
+                cy="${size/2}"
+                stroke-dasharray="${circumference}"
+                stroke-dashoffset="${circumference}"
+              />
+            </svg>
+          </div>
+
+          <div class="text-2xl sm:text-3xl ${currentLayout === 'starter' ? 'sm:text-5xl' : ''} font-black tracking-tight group-hover:scale-105 transition-transform" style="color: var(--text-main);">
+            ${letter}
+          </div>
+          <div class="flex items-center gap-1 mt-0.5">
+            <span class="text-sm sm:text-base">${item.icon}</span>
+            <span class="text-[10px] sm:text-[11px] font-bold font-mono uppercase tracking-wider" style="color: var(--text-muted);">
+              ${voiceMode === 'phonics' ? item.ipa : item.word}
+            </span>
+          </div>
+        `;
+
+        attachDwellListeners(card, () => {
+          handleLetterSelection(letter, card);
+        });
+
+        gridContainer.appendChild(card);
+      });
+    }
+
+    function handleLetterSelection(letter, element) {
+      element.classList.add('pop-anim');
+      setTimeout(() => element.classList.remove('pop-anim'), 300);
+
+      const { phonics, blends } = getActiveDataset();
+      const currentWord = getCurrentWord();
+      const previousLetter = currentWord.slice(-1);
+      const prospectivePair = previousLetter + letter;
+
+      if (autoBlendEnabled && voiceMode === 'phonics' && blends[prospectivePair]) {
+        const blend = blends[prospectivePair];
+        currentSentence += letter;
+        updateSentenceUI();
+
+        speakUtterance(blend.spoken, voicePitch + 0.15, 0.8);
+        showBlendBanner(`✨ ${currentLang === 'da' ? 'Lydsammenfald' : 'Blend'}: <strong>${previousLetter} + ${letter}</strong> smelter sammen til <strong>${blend.ipa}</strong> (som i <em>${blend.sample}</em>) ${blend.icon}`);
+      } else {
+        currentSentence += letter;
+        updateSentenceUI();
+
+        if (voiceMode === 'phonics') {
+          speakUtterance(phonics[letter]?.sound || letter, voicePitch, 0.85);
+        } else {
+          speakUtterance(letter, voicePitch, 0.9);
+        }
+      }
+    }
+
+    /* =====================================================================
+       9. SPACEBAR, SENTENCE & PREDICTION LOGIC
+       ===================================================================== */
+    attachDwellListeners(btnSpacebar, () => {
+      btnSpacebar.classList.add('pop-anim');
+      setTimeout(() => btnSpacebar.classList.remove('pop-anim'), 300);
+
+      if (currentSentence.length > 0 && !currentSentence.endsWith(' ')) {
+        currentSentence += ' ';
+        updateSentenceUI();
+        speakUtterance(currentLang === 'da' ? "mellemrum" : "space", voicePitch, 1.1);
+      }
+    });
+
+    function updateSentenceUI() {
+      if (!currentSentence) {
+        wordDisplay.innerHTML = `<span class="text-slate-500 text-sm sm:text-base font-normal tracking-normal italic">${
+          currentLang === 'da' ? 'Kig på bogstaver eller kerneord for at tale...' : 'Hover mouse over letters or quick words to speak...'
+        }</span>`;
+        wordEmoji.textContent = '💬';
+        phoneticSoundList.textContent = currentLang === 'da' ? 'Ingen' : 'None';
+        predictionsList.innerHTML = `<span class="text-xs italic" style="color: var(--text-muted);">${
+          currentLang === 'da' ? 'Skriv bogstaver for at se forslag her' : 'Type letters to see word predictions here'
+        }</span>`;
+        return;
+      }
+
+      wordDisplay.innerHTML = '';
+      const words = currentSentence.split(' ');
+      words.forEach((w, wIdx) => {
+        const wordSpan = document.createElement('span');
+        wordSpan.className = 'inline-flex items-center';
+
+        const segments = segmentWordIntoPhonemes(w);
+        segments.forEach(s => {
+          const letterSpan = document.createElement('span');
+          letterSpan.textContent = s.text;
+          if (s.isBlend) {
+            letterSpan.className = 'px-1 rounded bg-purple-500/25 border border-purple-400 text-purple-300';
+            letterSpan.title = `Lyd ${s.data.ipa}`;
+          } else {
+            letterSpan.className = 'px-0.5';
+          }
+          wordSpan.appendChild(letterSpan);
+        });
+
+        wordDisplay.appendChild(wordSpan);
+
+        if (wIdx < words.length - 1) {
+          const spaceSpan = document.createElement('span');
+          spaceSpan.innerHTML = '&nbsp;';
+          wordDisplay.appendChild(spaceSpan);
+        }
+      });
+
+      const { words: activeWordsDb } = getActiveDataset();
+      const activeWord = getCurrentWord();
+      if (activeWord) {
+        const segments = segmentWordIntoPhonemes(activeWord);
+        phoneticSoundList.innerHTML = segments.map(s => s.data.ipa).join(' + ');
+
+        if (activeWordsDb[activeWord]) {
+          wordEmoji.textContent = activeWordsDb[activeWord].icon;
+        } else {
+          wordEmoji.textContent = '🔤';
+        }
+      } else {
+        phoneticSoundList.textContent = currentLang === 'da' ? 'Ingen' : 'None';
+        wordEmoji.textContent = '💬';
+      }
+
+      renderPredictions();
+    }
+
+    function renderPredictions() {
+      predictionsList.innerHTML = '';
+      const { words: activeWordsDb } = getActiveDataset();
+      const activeWord = getCurrentWord().toUpperCase();
+      if (!activeWord) {
+        predictionsList.innerHTML = `<span class="text-xs italic" style="color: var(--text-muted);">${
+          currentLang === 'da' ? 'Skriv bogstaver for at se forslag her' : 'Type letters to see predictions here'
+        }</span>`;
+        return;
+      }
+
+      const matches = Object.keys(activeWordsDb).filter(w => w.startsWith(activeWord) && w !== activeWord);
+
+      if (matches.length === 0) {
+        predictionsList.innerHTML = `<span class="text-xs italic" style="color: var(--text-muted);">${
+          currentLang === 'da' ? 'Søger efter ordforslag...' : 'Looking for matching words...'
+        }</span>`;
+        return;
+      }
+
+      matches.slice(0, 5).forEach(word => {
+        const item = activeWordsDb[word];
+        const chip = document.createElement('button');
+        chip.className = 'gaze-target relative overflow-hidden px-3 py-1.5 rounded-xl border text-xs font-black flex items-center gap-1.5 transition shadow-sm';
+        chip.style.backgroundColor = 'rgba(168, 85, 247, 0.18)';
+        chip.style.borderColor = 'var(--highlight-blend)';
+        chip.style.color = 'var(--text-main)';
+
+        chip.innerHTML = `
+          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="var(--accent-glow)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
+          </svg>
+          <span class="text-sm">${item.icon}</span>
+          <span>${word}</span>
+        `;
+
+        attachDwellListeners(chip, () => {
+          const words = currentSentence.split(' ');
+          words[words.length - 1] = word;
+          currentSentence = words.join(' ') + ' ';
+          updateSentenceUI();
+          speakUtterance(word, voicePitch, voiceRate);
+          showBlendBanner(`${currentLang === 'da' ? 'Valgt ord' : 'Word selected'}: <strong>${word}</strong> ${item.icon}`);
+        });
+
+        predictionsList.appendChild(chip);
+      });
+    }
+
+    /* =====================================================================
+       10. ACTION BUTTONS & LANGUAGE SWITCHER
+       ===================================================================== */
+    attachDwellListeners(btnSoundOut, () => {
+      soundOutWord();
+    });
+
+    attachDwellListeners(btnSpeakWord, () => {
+      if (currentSentence.trim()) {
+        speakUtterance(currentSentence.trim(), voicePitch, voiceRate);
+      } else {
+        speakUtterance(currentLang === 'da' ? "Vælg ord eller bogstaver først" : "Pick words or letters first");
+      }
+    });
+
+    attachDwellListeners(btnBackspace, () => {
+      if (currentSentence.length > 0) {
+        currentSentence = currentSentence.slice(0, -1);
+        updateSentenceUI();
+        speakUtterance(currentLang === 'da' ? "slet" : "back", voicePitch, 1.1);
+      }
+    });
+
+    attachDwellListeners(btnClear, () => {
+      if (currentSentence.length > 0) {
+        currentSentence = '';
+        updateSentenceUI();
+        speakUtterance(currentLang === 'da' ? "ryddet" : "clear", voicePitch, 1.1);
+      }
+    });
+
+    attachDwellListeners(btnVoiceMode, () => {
+      toggleVoiceMode();
+    });
+
+    attachDwellListeners(btnOpenSettings, () => {
+      settingsModal.classList.remove('hidden');
+      settingsModal.classList.add('flex');
+    });
+
+    function toggleVoiceMode() {
+      if (voiceMode === 'phonics') {
+        voiceMode = 'letter';
+        voiceModeIcon.textContent = '🔤';
+        voiceModeLabel.textContent = currentLang === 'da' ? 'Bogstavnavn ("A")' : 'Letter Names ("A")';
+        btnVoiceMode.style.color = '#38bdf8';
+      } else {
+        voiceMode = 'phonics';
+        voiceModeIcon.textContent = '🗣️';
+        voiceModeLabel.textContent = currentLang === 'da' ? 'Bogstavlyd (/æ/)' : 'Phonics (/æ/)';
+        btnVoiceMode.style.color = 'var(--accent)';
+      }
+      renderGrid();
+    }
+
+    // Language Change Handler
+    langSelect.addEventListener('change', (e) => {
+      currentLang = e.target.value;
+      quickWords = JSON.parse(localStorage.getItem('gaze_quick_words_' + currentLang) || 'null') || 
+        (currentLang === 'da' ? danishDefaultQuickWords : englishDefaultQuickWords);
+
+      if (currentLang === 'da') {
+        headerTitle.innerHTML = 'GazeVoice AAC • Dansk Phonics';
+        headerSubtitle.textContent = 'Musen simulerer øjenblik • Dwell-udvælgelse • Danske bogstavlyde og sammensmeltninger';
+        spacebarLabel.textContent = 'MELLEMRUM (Nyt Ord i Sætning)';
+        voiceModeLabel.textContent = voiceMode === 'phonics' ? 'Bogstavlyd (/æ/)' : 'Bogstavnavn ("A")';
+        document.getElementById('quickWordsTitle').innerHTML = '<span>⚡</span> Kerneord';
+        document.getElementById('editQuickWordsLabel').textContent = 'Rediger Kerneord';
+        document.getElementById('sentenceLabel').textContent = 'Sætning';
+        document.getElementById('phonemeLabel').textContent = 'Bogstavlyde:';
+        document.getElementById('btnSoundOutLabel').textContent = 'Lydord';
+        document.getElementById('btnSpeakAllLabel').textContent = 'Sig Alt';
+        document.getElementById('btnBackLabel').textContent = 'Slet';
+        document.getElementById('btnClearLabel').textContent = 'Ryd';
+        document.getElementById('restZoneTitle').textContent = 'Hvile- & Tænkezone';
+        document.getElementById('restZoneDesc').textContent = 'Placer øjenblikket her for at hvile øjnene, tænke eller lytte uden at aktivere knapper.';
+        document.getElementById('predictionsLabel').textContent = 'Ordforslag:';
+        document.getElementById('settingsBtnLabel').textContent = 'Indstillinger';
+      } else {
+        headerTitle.innerHTML = 'GazeVoice AAC • English Phonics';
+        headerSubtitle.textContent = 'Mouse simulates eye-gaze • Dwell selection • Sound blending active';
+        spacebarLabel.textContent = 'SPACEBAR (Add Space to Sentence)';
+        voiceModeLabel.textContent = voiceMode === 'phonics' ? 'Phonics (/æ/)' : 'Letter Names ("A")';
+        document.getElementById('quickWordsTitle').innerHTML = '<span>⚡</span> Quick Words';
+        document.getElementById('editQuickWordsLabel').textContent = 'Edit Quick Words';
+        document.getElementById('sentenceLabel').textContent = 'Sentence';
+        document.getElementById('phonemeLabel').textContent = 'Current Phonemes:';
+        document.getElementById('btnSoundOutLabel').textContent = 'Flow Sounds';
+        document.getElementById('btnSpeakAllLabel').textContent = 'Speak All';
+        document.getElementById('btnBackLabel').textContent = 'Back';
+        document.getElementById('btnClearLabel').textContent = 'Clear';
+        document.getElementById('restZoneTitle').textContent = 'Eye Rest & Thinking Zone';
+        document.getElementById('restZoneDesc').textContent = 'Park your gaze here to rest your eyes, think, or read safely without clicks.';
+        document.getElementById('predictionsLabel').textContent = 'Word Suggestions:';
+        document.getElementById('settingsBtnLabel').textContent = 'Settings';
+      }
+
+      renderQuickWords();
+      renderGrid();
+      updateSentenceUI();
+    });
+
+    btnCloseSettings.addEventListener('click', () => {
+      settingsModal.classList.add('hidden');
+      settingsModal.classList.remove('flex');
+    });
+
+    btnSaveSettings.addEventListener('click', () => {
+      settingsModal.classList.add('hidden');
+      settingsModal.classList.remove('flex');
+    });
+
+    document.querySelectorAll('.layout-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('border-amber-400', 'bg-amber-500/20'));
+        btn.classList.add('border-amber-400', 'bg-amber-500/20');
+        currentLayout = btn.dataset.layout;
+        renderGrid();
+      });
+    });
+
+    dwellSelect.addEventListener('change', (e) => {
+      dwellDuration = parseInt(e.target.value, 10);
+    });
+
+    themeSelect.addEventListener('change', (e) => {
+      document.body.className = document.body.className.replace(/theme-[a-z-]+/g, '');
+      if (e.target.value !== 'theme-default') {
+        document.body.classList.add(e.target.value);
+      }
+    });
+
+    pitchSlider.addEventListener('input', (e) => { voicePitch = parseFloat(e.target.value); });
+    rateSlider.addEventListener('input', (e) => { voiceRate = parseFloat(e.target.value); });
+    toggleBlending.addEventListener('change', (e) => { autoBlendEnabled = e.target.checked; });
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
+    }
+
+    // Init
+    renderQuickWords();
+    renderGrid();
+    updateSentenceUI();
+  </script>
+</body>
+</html>
