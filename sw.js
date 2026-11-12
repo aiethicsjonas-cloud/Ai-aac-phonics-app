@@ -2,31 +2,34 @@
   GazeVoice service worker: makes the app installable and usable offline.
   Strategy: serve from cache immediately, refresh the cache in the background
   (stale-while-revalidate). A new version shows up on the next app launch.
-  Bump CACHE_VERSION when the list of files below changes.
+  Bump CACHE_VERSION whenever files change, so installed apps fetch the new copy.
+  Everything the app needs (fonts included) lives in this repository, so it
+  works fully offline and does not depend on any outside server.
 */
-const CACHE_VERSION = 'gazevoice-v1';
-const TAILWIND_URL = 'https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js';
+const CACHE_VERSION = 'gazevoice-v2';
 
 const APP_SHELL = [
-  './',
-  './index.html',
-  './manifest.webmanifest',
-  './icons/icon.svg',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/apple-touch-icon.png'
+  "./",
+  "./index.html",
+  "./manifest.webmanifest",
+  "./fonts/andika-400-latin-ext.woff2",
+  "./fonts/andika-400-latin.woff2",
+  "./fonts/andika-700-latin-ext.woff2",
+  "./fonts/andika-700-latin.woff2",
+  "./fonts/baloo2-500-800-latin-ext.woff2",
+  "./fonts/baloo2-500-800-latin.woff2",
+  "./fonts/fonts.css",
+  "./icons/icon.svg",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png",
+  "./icons/icon-maskable-512.png",
+  "./icons/apple-touch-icon.png"
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_VERSION);
     await cache.addAll(APP_SHELL);
-    // Cross-origin script without CORS headers: cache the opaque response.
-    try {
-      await cache.put(TAILWIND_URL, await fetch(TAILWIND_URL, { mode: 'no-cors' }));
-    } catch (e) {
-      // Offline during install: it will be cached on the next online load.
-    }
     await self.skipWaiting();
   })());
 });
@@ -42,11 +45,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
-
-  const url = new URL(request.url);
-  const isSameOrigin = url.origin === self.location.origin;
-  const isTailwind = request.url === TAILWIND_URL;
-  if (!isSameOrigin && !isTailwind) return;
+  if (new URL(request.url).origin !== self.location.origin) return;
 
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_VERSION);
@@ -54,9 +53,9 @@ self.addEventListener('fetch', (event) => {
     const cacheKey = request.mode === 'navigate' ? './index.html' : request;
     const cached = await cache.match(cacheKey, { ignoreSearch: request.mode === 'navigate' });
 
-    const refresh = fetch(isTailwind ? new Request(TAILWIND_URL, { mode: 'no-cors' }) : request)
+    const refresh = fetch(request)
       .then((response) => {
-        if (response && (response.ok || response.type === 'opaque')) {
+        if (response && response.ok) {
           cache.put(cacheKey, response.clone());
         }
         return response;

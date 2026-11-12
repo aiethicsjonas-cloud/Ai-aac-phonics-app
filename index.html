@@ -2,11 +2,11 @@
 <html lang="da">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>GazeVoice AAC - Dansk & English Phonics Eye-Tracker Prototype</title>
   <!-- Progressive Web App: installable on phones/tablets and usable offline -->
   <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#0b1120">
+  <meta name="theme-color" content="#11142C">
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="icon" href="icons/icon-192.png" type="image/png" sizes="192x192">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -14,447 +14,569 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="GazeVoice">
-  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <!-- Fonts are stored in the app itself: works offline and sends nothing to Google -->
+  <link rel="stylesheet" href="fonts/fonts.css">
   <style>
+    /* Layout: one-screen tablet board. Adult controls on top, then quick words, the sentence,
+       the word being spelled, a calm rest band, the letter keys and the spacebar. */
     :root {
-      --bg-main: #0b1120;
-      --bg-card: #1e293b;
-      --border-card: #334155;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent: #fbbf24;
-      --accent-glow: rgba(251, 191, 36, 0.35);
-      --highlight-blend: #a855f7;
-      --rest-zone-bg: #0f2027;
-      --rest-zone-border: #1e3a47;
+      /* Mørk Navy (default) */
+      --bg: #11142C; --surface: #1B1F42; --surface-2: #232852; --ink: #EEF0FF; --ink-soft: #A9AED8; --line: #323867;
+      --brand: #9A98FF; --brand-ink: #11142C; --on-sun: #1B1F45;
+      --sun: #FFC83D; --coral: #FF7B6B; --leaf: #3FC383; --aqua: #2BB8E0; --berry: #DA69C6; --violet: #8C8CFF;
+      --key-ink: #EEF0FF; --tint-amt: 24%; --fill-amt: 50%;
+      --rest: #16362E; --rest-ink: #97E0BF; --gaze: #B3B1FF; --gaze-rest: #6FE0A9; --blend: #DA69C6;
+      --shadow: 0 1px 0 rgba(0,0,0,.3), 0 12px 30px -12px rgba(0,0,0,.65);
+      --font-display: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+      --font-letter: "Andika", "Verdana", system-ui, sans-serif;
+      color-scheme: dark;
     }
-
-    body.theme-yellow-black {
-      --bg-main: #000000;
-      --bg-card: #141414;
-      --border-card: #444444;
-      --text-main: #ffff00;
-      --text-muted: #e2e8f0;
-      --accent: #ffff00;
-      --accent-glow: rgba(255, 255, 0, 0.45);
-      --highlight-blend: #38bdf8;
-      --rest-zone-bg: #1a1a1a;
-      --rest-zone-border: #555555;
-    }
-
     body.theme-light-contrast {
-      --bg-main: #f8fafc;
-      --bg-card: #ffffff;
-      --border-card: #cbd5e1;
-      --text-main: #0f172a;
-      --text-muted: #475569;
-      --accent: #2563eb;
-      --accent-glow: rgba(37, 99, 235, 0.3);
-      --highlight-blend: #7c3aed;
-      --rest-zone-bg: #f1f5f9;
-      --rest-zone-border: #94a3b8;
+      --bg: #EDF2FF; --surface: #FFFFFF; --surface-2: #F4F6FF; --ink: #1B1F45; --ink-soft: #5B6090; --line: #D8DEF6;
+      --brand: #5653E0; --brand-ink: #FFFFFF;
+      --key-ink: #1B1F45; --tint-amt: 30%; --fill-amt: 80%;
+      --rest: #DDF4E9; --rest-ink: #2D6B53; --gaze: #5653E0; --gaze-rest: #2FA672; --blend: #B4489F;
+      --shadow: 0 1px 0 rgba(27,31,69,.06), 0 10px 28px -12px rgba(27,31,69,.28);
+      color-scheme: light;
     }
-
+    body.theme-yellow-black {
+      --bg: #000000; --surface: #000000; --surface-2: #111111; --ink: #FFFF00; --ink-soft: #FFF59A; --line: #FFFF00;
+      --brand: #FFFF00; --brand-ink: #000000; --on-sun: #000000;
+      --sun: #FFFF00; --coral: #FFFF00; --leaf: #FFFF00; --aqua: #FFFF00; --berry: #FFFF00; --violet: #FFFF00;
+      --key-ink: #FFFF00; --tint-amt: 0%; --fill-amt: 38%;
+      --rest: #04233D; --rest-ink: #8FD8FF; --gaze: #FFFF00; --gaze-rest: #8FD8FF; --blend: #38BDF8;
+      --shadow: none;
+      color-scheme: dark;
+    }
     body.theme-sensory-calm {
-      --bg-main: #131c19;
-      --bg-card: #1d2d27;
-      --border-card: #2d453b;
-      --text-main: #ecfdf5;
-      --text-muted: #a7f3d0;
-      --accent: #34d399;
-      --accent-glow: rgba(52, 211, 153, 0.3);
-      --highlight-blend: #f59e0b;
-      --rest-zone-bg: #162420;
-      --rest-zone-border: #233e34;
+      --bg: #131C19; --surface: #1D2D27; --surface-2: #22372F; --ink: #ECFDF5; --ink-soft: #A7F3D0; --line: #2D453B;
+      --brand: #34D399; --brand-ink: #0B1F17; --on-sun: #1F3B33;
+      --sun: #C9B87A; --coral: #5FAE8F; --leaf: #5FAE8F; --aqua: #5FAE8F; --berry: #5FAE8F; --violet: #5FAE8F;
+      --key-ink: #ECFDF5; --tint-amt: 22%; --fill-amt: 48%;
+      --rest: #162420; --rest-ink: #A7F3D0; --gaze: #34D399; --gaze-rest: #A7F3D0; --blend: #F59E0B;
+      --shadow: 0 10px 26px -14px rgba(0,0,0,.6);
+      color-scheme: dark;
     }
 
-    @keyframes popPulse {
-      0% { transform: scale(0.96); }
-      50% { transform: scale(1.08); }
-      100% { transform: scale(1.0); }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; overscroll-behavior: none; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font-family: var(--font-letter); font-size: 16px; line-height: 1.4;
+      -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+      transition: background-color .2s;
     }
+    button, input, select { font: inherit; color: inherit; }
+    button { background: none; border: 0; padding: 0; margin: 0; cursor: pointer; }
+    :focus-visible { outline: 4px solid var(--brand); outline-offset: 3px; }
+    svg { display: block; }
 
-    .pop-anim {
-      animation: popPulse 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    .app {
+      min-height: 100%; display: flex; flex-direction: column; gap: 8px;
+      max-width: 1320px; margin: 0 auto;
+      padding-block: calc(env(safe-area-inset-top, 0px) + 12px) calc(env(safe-area-inset-bottom, 0px) + 12px);
+      padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
     }
+    .app > * { flex: none; }
 
-    .dwell-ring {
-      transition: stroke-dashoffset 0.05s linear;
-      transform: rotate(-90deg);
-      transform-origin: 50% 50%;
+    /* ---------- Dwell (everything the eyes can choose fills up from the bottom) ---------- */
+    .gaze-target { --p: 0; position: relative; isolation: isolate; overflow: hidden; touch-action: manipulation; }
+    .gaze-target::before {
+      content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+      background: var(--dwell-fill, color-mix(in srgb, var(--brand) 24%, transparent));
+      transform: scaleY(var(--p)); transform-origin: 50% 100%;
     }
+    .gaze-target.is-dwelling { box-shadow: 0 0 0 4px var(--gaze), 0 12px 26px -8px color-mix(in srgb, var(--gaze) 55%, transparent); }
+    .pop-anim { animation: popPulse .32s cubic-bezier(.175,.885,.32,1.275); }
+    @keyframes popPulse { 0% { transform: scale(.96); } 50% { transform: scale(1.07); } 100% { transform: scale(1); } }
 
-    .gaze-target {
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: manipulation;
-    }
-
+    /* ---------- Gaze dot (mouse = eyes) ---------- */
     #gazeReticle {
-      pointer-events: none;
-      position: fixed;
-      z-index: 9999;
-      transform: translate(-50%, -50%);
-      transition: width 0.15s, height 0.15s, opacity 0.2s, background-color 0.2s, border-color 0.2s;
+      position: fixed; left: -200px; top: -200px; width: 88px; height: 88px; z-index: 9999;
+      transform: translate(-50%, -50%); pointer-events: none; opacity: 0; transition: opacity .2s;
+    }
+    #gazeReticle.show { opacity: 1; }
+    #gazeReticle svg { width: 100%; height: 100%; overflow: visible; }
+    #gazeReticle .g-bg { fill: color-mix(in srgb, var(--gaze) 12%, transparent); stroke: color-mix(in srgb, var(--gaze) 35%, transparent); stroke-width: 3; }
+    #gazeReticle .g-ring { fill: none; stroke: var(--gaze); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; transform: rotate(-90deg); transform-origin: 50% 50%; }
+    #gazeReticle .g-core { position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--gaze); box-shadow: 0 0 0 3px var(--surface); transition: transform .2s, background .2s; }
+    #gazeReticle.resting .g-core { background: var(--gaze-rest); transform: scale(1.5); }
+    #gazeReticle.resting .g-bg { fill: color-mix(in srgb, var(--gaze-rest) 16%, transparent); stroke: color-mix(in srgb, var(--gaze-rest) 40%, transparent); }
+    #gazeReticle.resting .g-ring { stroke-dashoffset: 100 !important; }
+
+    /* ---------- Top bar (adult controls) ---------- */
+    .topbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 44px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 800; font-size: 22px; margin-right: 4px; }
+    .brand svg { width: 38px; height: 38px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 999px;
+      background: var(--surface); border: 2px solid var(--line); color: var(--ink);
+      font-family: var(--font-display); font-weight: 600; font-size: 15px; white-space: nowrap;
+    }
+    .pill select { appearance: none; -webkit-appearance: none; background: transparent; border: 0; padding: 0 2px; font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--ink); cursor: pointer; }
+    .pill select:focus-visible { outline: none; }
+    .pill:focus-within { outline: 4px solid var(--brand); outline-offset: 2px; }
+    .pill select option { color: #11142C; background: #FFFFFF; }
+    .pill .caret-down { opacity: .6; font-size: 11px; }
+    .flag svg { width: 24px; height: 16px; border-radius: 3px; }
+    .seg { display: inline-flex; background: var(--surface); border: 2px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
+    .seg button { height: 30px; padding: 0 12px; border-radius: 999px; font-family: var(--font-display); font-weight: 600; font-size: 14px; color: var(--ink-soft); white-space: nowrap; }
+    .seg button[aria-pressed="true"] { background: var(--brand); color: var(--brand-ink); }
+    .spacer { flex: 1; }
+    .pill svg.ico { width: 20px; height: 20px; }
+
+    /* ---------- Quick words (Kerneord) ---------- */
+    .quick-row { display: flex; gap: 8px; align-items: stretch; }
+    .quick { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; }
+    .qbtn {
+      --tint: color-mix(in srgb, var(--hue) var(--tint-amt), var(--surface));
+      --dwell-fill: color-mix(in srgb, var(--hue) var(--fill-amt), var(--surface));
+      min-height: 56px; border-radius: 18px; background: var(--tint); border: 3px solid var(--hue); color: var(--key-ink);
+      display: flex; align-items: center; justify-content: center; gap: 8px; padding: 4px 8px;
+      font-family: var(--font-display); font-weight: 800; font-size: clamp(15px, 1.5vw, 19px); letter-spacing: .03em; line-height: 1.1;
+    }
+    .qbtn .emo { font-size: 1.35em; line-height: 1; }
+    .edit-quick {
+      flex: none; min-height: 56px; padding: 4px 14px; border-radius: 18px; border: 2px dashed var(--line); color: var(--ink-soft);
+      display: flex; align-items: center; gap: 6px; font-family: var(--font-display); font-weight: 700; font-size: 14px;
+      --dwell-fill: color-mix(in srgb, var(--brand) 24%, var(--surface));
     }
 
-    @keyframes gentleBreath {
-      0%, 100% { opacity: 0.85; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.015); }
+    /* ---------- Sentence bar (Sætning) ---------- */
+    .sentence { display: flex; align-items: center; gap: 12px; background: var(--surface); border-radius: 22px; padding: 8px 8px 8px 18px; box-shadow: var(--shadow); min-height: 64px; }
+    .label { flex: none; font-family: var(--font-display); font-weight: 700; font-size: 13px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-soft); }
+    .sentence-words { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .sentence-empty { font-size: 18px; color: var(--ink-soft); }
+    .wchip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 14px; border-radius: 14px; background: var(--surface-2); border: 2px solid var(--line); font-weight: 700; font-size: 24px; line-height: 1.3; }
+    .wchip .emo { font-size: .9em; }
+    .wchip.new { animation: drop .4s cubic-bezier(.3,1.5,.6,1); }
+    .wchip.speaking { background: color-mix(in srgb, var(--sun) 45%, var(--surface)); border-color: var(--sun); }
+    .sentence-actions { flex: none; display: flex; gap: 8px; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 8px 18px; border-radius: 18px; font-family: var(--font-display); font-weight: 700; font-size: 18px; line-height: 1.1; text-align: center; }
+    .btn svg { width: 24px; height: 24px; flex: none; }
+    .btn .emo { font-size: 20px; line-height: 1; }
+    .btn.soft { background: var(--surface-2); border: 2px solid var(--line); color: var(--ink); --dwell-fill: color-mix(in srgb, var(--brand) 24%, var(--surface)); }
+    .btn.ghost { background: transparent; border: 2px solid var(--line); color: var(--ink-soft); }
+    .btn.primary { background: var(--brand); color: var(--brand-ink); box-shadow: 0 6px 0 color-mix(in srgb, var(--brand) 68%, #000); --dwell-fill: color-mix(in srgb, var(--brand) 62%, var(--ink)); }
+    body.theme-yellow-black .btn.primary { --dwell-fill: #FFFFFF; box-shadow: none; }
+    .btn.big { min-height: 66px; padding: 10px 24px; border-radius: 22px; font-size: clamp(19px, 2.1vw, 26px); font-weight: 800; }
+    .btn.big svg { width: 34px; height: 34px; }
+
+    /* ---------- Word card ---------- */
+    .wordcard { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; background: var(--surface); border-radius: 26px; padding: 12px 14px 12px 18px; box-shadow: var(--shadow); }
+    .word-col { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+    .word-line { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .word-emoji { flex: none; width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; font-size: 32px; background: var(--surface-2); border: 2px solid var(--line); }
+    .word { flex: 1; min-width: 0; display: flex; align-items: flex-end; flex-wrap: wrap; gap: 0 .05em; min-height: calc(1.1em + 18px); font-weight: 700; font-size: clamp(38px, 7vh, 76px); line-height: 1.1; letter-spacing: .02em; }
+    .word-empty { align-self: center; font-size: clamp(17px, .34em, 24px); font-weight: 400; color: var(--ink-soft); letter-spacing: 0; font-style: italic; }
+    .seg1, .pair { position: relative; display: inline-flex; padding: 0 .02em 18px; border-radius: 14px; transition: background .15s; }
+    .seg1::after { content: ""; position: absolute; left: 50%; bottom: 3px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: var(--ink-soft); transition: transform .15s, background .15s; }
+    .pair { background: color-mix(in srgb, var(--blend) 16%, transparent); }
+    .pair::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: 6px; height: 6px; border-radius: 3px; background: var(--blend); }
+    body:not(.mode-phonics) .seg1::after { display: none; }
+    body:not(.mode-phonics) .seg1 { padding-bottom: 4px; }
+    .lit { background: color-mix(in srgb, var(--sun) 45%, transparent) !important; }
+    .lit::after { background: var(--coral) !important; transform: scale(1.35); }
+    .ch { display: inline-block; }
+    .ch.new { animation: drop .4s cubic-bezier(.3,1.6,.6,1); }
+    .caret { align-self: center; width: 5px; height: .85em; margin: 0 0 6px .08em; border-radius: 3px; background: var(--brand); animation: blink 1.1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    @keyframes drop { from { transform: translateY(-.5em) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+    .phonemes { flex: none; align-self: center; max-width: 40%; font-family: var(--font-display); font-weight: 700; font-size: 15px; line-height: 1.2; padding: 6px 12px; border-radius: 14px; color: var(--ink); background: color-mix(in srgb, var(--blend) 14%, var(--surface)); border: 2px solid color-mix(in srgb, var(--blend) 60%, var(--line)); }
+    .phonemes .ipa-list { font-family: var(--font-letter); font-weight: 700; }
+    .ideas { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+    .ideas-row { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; min-height: 48px; align-items: center; }
+    .ideas-none { font-size: 15px; color: var(--ink-soft); font-style: italic; }
+    .idea { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 4px 16px; border-radius: 16px; background: var(--surface-2); border: 2px solid var(--line); font-size: 21px; font-weight: 700; --dwell-fill: color-mix(in srgb, var(--leaf) 40%, var(--surface)); }
+    .idea b { color: var(--brand); }
+    .word-actions { display: flex; flex-direction: column; gap: 10px; width: clamp(230px, 27vw, 330px); }
+    .word-actions .big { flex: 1; }
+
+    /* ---------- Rest zone ---------- */
+    .rest { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; min-height: 46px; padding: 4px 16px; border-radius: 999px; background: var(--rest); color: var(--rest-ink); border: 2px dashed color-mix(in srgb, var(--rest-ink) 35%, transparent); font-family: var(--font-display); font-weight: 600; font-size: 17px; transition: background .4s; text-align: center; }
+    .rest-face { font-size: 22px; line-height: 1; animation: breathe 4s ease-in-out infinite; }
+    .rest-badge { font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 999px; border: 1.5px solid color-mix(in srgb, var(--rest-ink) 45%, transparent); }
+    .rest-desc { font-family: var(--font-letter); font-weight: 400; font-size: 13px; opacity: .85; }
+    .rest.is-resting { background: color-mix(in srgb, var(--rest) 70%, var(--gaze-rest)); }
+    .rest.is-resting .rest-badge { background: var(--rest-ink); color: var(--rest); }
+    @keyframes breathe { 50% { transform: scale(1.2); } }
+
+    /* ---------- Letter keys ---------- */
+    .keyboard { --cols: 10; --rows: 3; flex: 1 1 auto; display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); grid-template-rows: repeat(var(--rows), minmax(var(--row-min, 62px), 1fr)); gap: 9px; }
+    .key {
+      --tint: color-mix(in srgb, var(--hue) var(--tint-amt), var(--surface));
+      --dwell-fill: color-mix(in srgb, var(--hue) var(--fill-amt), var(--surface));
+      min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 0 2px;
+      background: var(--tint); color: var(--key-ink); border: 3px solid var(--hue); border-bottom-width: 8px; border-bottom-color: color-mix(in srgb, var(--hue) 72%, #000); border-radius: 22px;
+      transition: transform .15s ease;
     }
-    .rest-breathing {
-      animation: gentleBreath 4s ease-in-out infinite;
+    .key.is-dwelling { transform: translateY(-3px); }
+    .key .glyph { font-weight: 700; font-size: clamp(26px, min(4.2vw, 5.6vh), 58px); line-height: 1; }
+    .keyboard.starter .key .glyph { font-size: clamp(40px, min(8vw, 10vh), 96px); }
+    .key-sub { display: flex; align-items: center; justify-content: center; gap: 5px; line-height: 1; max-width: 100%; min-width: 0; }
+    .key .pic { font-size: clamp(15px, 2.4vh, 26px); line-height: 1; }
+    .keyboard.starter .key .pic { font-size: clamp(22px, 4vh, 40px); }
+    .key .hint { font-size: clamp(11px, 1.6vh, 15px); opacity: .82; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .key.vowel::after { content: ""; position: absolute; top: 8px; right: 8px; width: 9px; height: 9px; border-radius: 50%; background: var(--key-ink); opacity: .35; }
+    .key.del { font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+    .key.del svg { width: clamp(28px, 3.4vw, 40px); height: auto; }
+
+    .spacebar {
+      --hue: var(--ink-soft);
+      --tint: color-mix(in srgb, var(--hue) var(--tint-amt), var(--surface));
+      --dwell-fill: color-mix(in srgb, var(--brand) var(--fill-amt), var(--surface));
+      width: 100%; min-height: 54px; display: flex; align-items: center; justify-content: center; gap: 12px;
+      background: var(--tint); color: var(--key-ink); border: 3px solid var(--line); border-bottom-width: 7px; border-radius: 20px;
+      font-family: var(--font-display); font-weight: 800; font-size: clamp(15px, 1.6vw, 19px); letter-spacing: .1em; text-transform: uppercase;
     }
+    .spacebar .space-glyph { font-size: 26px; line-height: 1; letter-spacing: 0; }
+
+    /* ---------- Toast (sound blends and spoken words) ---------- */
+    .toast {
+      position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 10px); z-index: 80;
+      display: flex; align-items: center; gap: 12px; max-width: calc(100% - 32px);
+      padding: 9px 20px 9px 10px; border-radius: 999px; background: var(--ink); color: var(--bg); box-shadow: var(--shadow);
+      font-family: var(--font-display); font-weight: 600; font-size: 17px; line-height: 1.25;
+      opacity: 0; transform: translate(-50%, -16px); transition: opacity .25s, transform .25s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .toast .toast-ico { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--sun); color: var(--on-sun); font-size: 18px; }
+    .toast-badge { flex: none; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; border: 1.5px solid currentColor; opacity: .75; }
+
+    /* ---------- Dialogs ---------- */
+    .scrim { position: fixed; inset: 0; z-index: 95; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .scrim.drawer-scrim { justify-content: flex-end; padding: 0; }
+    .dialog { width: min(560px, 100%); max-height: calc(100% - 16px); overflow-y: auto; background: var(--surface); color: var(--ink); border: 2px solid var(--line); border-radius: 26px; box-shadow: var(--shadow); padding: 22px; display: flex; flex-direction: column; gap: 18px; -webkit-user-select: text; user-select: text; }
+    .dialog.wide { width: min(760px, 100%); }
+    .drawer { width: min(440px, 100%); height: 100%; max-height: none; border-radius: 0; border-width: 0 0 0 2px;
+      padding-block: calc(env(safe-area-inset-top, 0px) + 20px) calc(env(safe-area-inset-bottom, 0px) + 22px);
+      padding-left: 22px; padding-right: max(22px, env(safe-area-inset-right, 0px)); }
+    .dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .dialog h2 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 26px; line-height: 1.1; }
+    .close-x { width: 44px; height: 44px; border-radius: 14px; font-size: 26px; line-height: 1; color: var(--ink-soft); border: 2px solid var(--line); }
+    .dialog p.help { margin: 0; font-size: 14px; color: var(--ink-soft); }
+    .set-group { display: flex; flex-direction: column; gap: 8px; }
+    .set-group h3 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 13px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-soft); }
+    .seg.wide { display: flex; flex-wrap: wrap; border-radius: 16px; }
+    .seg.wide button { flex: 1 1 auto; height: auto; min-height: 44px; padding: 6px 12px; border-radius: 12px; font-size: 15px; }
+    .range-row { display: flex; align-items: center; gap: 14px; }
+    .range-row input { flex: 1; accent-color: var(--brand); height: 28px; }
+    .range-val { min-width: 52px; text-align: right; font-family: var(--font-display); font-weight: 800; font-size: 20px; font-variant-numeric: tabular-nums; }
+    .check-card { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; border-radius: 16px; background: var(--surface-2); border: 2px solid var(--line); }
+    .check-card b { display: block; font-family: var(--font-display); font-size: 16px; }
+    .check-card span.help { display: block; font-size: 13px; color: var(--ink-soft); }
+    .check-card input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--brand); flex: none; cursor: pointer; }
+    .btn.rec { background: #E11D48; color: #FFFFFF; border: 0; min-height: 44px; font-size: 15px; white-space: nowrap; }
+    .dialog-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding-top: 4px; border-top: 2px solid var(--line); padding-top: 14px; }
+    .link-danger { color: var(--coral); font-weight: 700; font-size: 14px; text-decoration: underline; }
+    body.theme-yellow-black .link-danger { color: var(--ink); }
+
+    .field-row { display: flex; gap: 8px; }
+    .field-row input { min-width: 0; height: 46px; padding: 0 12px; border-radius: 14px; border: 2px solid var(--line); background: var(--surface-2); color: var(--ink); font-weight: 700; }
+    .field-row input#newWordInput { flex: 1; text-transform: uppercase; }
+    .field-row input#newEmojiInput { width: 84px; text-align: center; }
+    .list { display: flex; flex-direction: column; gap: 6px; }
+    .list-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 14px; background: var(--surface-2); border: 2px solid var(--line); font-weight: 700; }
+    .list-row.recording { border-color: #F43F5E; }
+    .list-row .who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .list-row .big-letter { width: 44px; text-align: center; font-size: 22px; font-weight: 800; flex: none; }
+    .list-row .ipa { width: 64px; flex: none; color: var(--blend); }
+    .list-row .muted { color: var(--ink-soft); font-weight: 400; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .list-row .tools { display: flex; align-items: center; gap: 6px; flex: none; }
+    .mini-btn { min-width: 40px; height: 36px; padding: 0 10px; border-radius: 10px; font-weight: 800; font-size: 14px; border: 2px solid var(--line); color: var(--ink); }
+    .mini-btn.rec { background: #E11D48; border-color: #E11D48; color: #FFFFFF; }
+    .mini-btn.rec.on { animation: pulse 1s ease-in-out infinite; }
+    .mini-btn.del { color: var(--coral); }
+    .mini-btn:disabled { opacity: .35; cursor: default; }
+    .status-chip { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--surface); border: 1.5px solid var(--line); color: var(--ink-soft); white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+    .status-chip.ok { color: var(--leaf); border-color: color-mix(in srgb, var(--leaf) 60%, var(--line)); }
+    @keyframes pulse { 50% { opacity: .55; } }
+
+    /* ---------- Narrower screens ---------- */
+    @media (max-width: 1199px) and (min-width: 641px) {
+      .edit-quick { width: 56px; padding: 0; justify-content: center; font-size: 22px; }
+      .edit-quick .lbl { display: none; }
+    }
+    /* Shorter screens such as an iPad held sideways: tighten everything so the board fits without scrolling */
+    @media (max-height: 760px) and (min-width: 641px) {
+      .app { gap: 7px; padding-block: calc(env(safe-area-inset-top, 0px) + 8px) calc(env(safe-area-inset-bottom, 0px) + 8px); }
+      .topbar { min-height: 38px; }
+      .brand svg { width: 32px; height: 32px; }
+      .pill { height: 36px; }
+      .seg button { height: 28px; }
+      .qbtn, .edit-quick { min-height: 50px; }
+      .sentence { min-height: 54px; padding: 5px 6px 5px 16px; }
+      .btn { min-height: 44px; }
+      .wchip { font-size: 20px; }
+      .wordcard { padding: 8px 12px 8px 16px; }
+      .word { font-size: clamp(32px, 6vh, 60px); min-height: calc(1.1em + 14px); }
+      .seg1, .pair { padding-bottom: 14px; }
+      .seg1::after { width: 10px; height: 10px; margin-left: -5px; bottom: 2px; }
+      .word-emoji { width: 46px; height: 46px; font-size: 26px; }
+      .ideas-row, .idea { min-height: 42px; }
+      .idea { font-size: 19px; }
+      .btn.big { min-height: 54px; }
+      .rest { min-height: 38px; font-size: 15px; }
+      .spacebar { min-height: 44px; }
+      .key .glyph { font-size: clamp(24px, min(4.2vw, 5vh), 58px); }
+      .key .pic { font-size: clamp(15px, 2.3vh, 24px); }
+    }
+    @media (max-width: 900px) {
+      .rest-desc { display: none; }
+      .phonemes { max-width: 50%; }
+    }
+    @media (max-width: 640px) {
+      .keyboard { gap: 7px; --row-min: 56px; }
+      .key { border-radius: 16px; border-bottom-width: 6px; }
+      .key .hint { display: none; }
+      .key.vowel::after { top: 4px; right: 4px; width: 6px; height: 6px; }
+      .topbar .seg, .brand span, .pill .dwell-label { display: none; }
+      .quick-row { flex-direction: column; }
+      .quick { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .qbtn { flex-direction: column; gap: 2px; min-height: 64px; font-size: 13px; }
+      .edit-quick { min-height: 44px; justify-content: center; }
+      .sentence { flex-wrap: wrap; padding: 10px 12px; }
+      .sentence-words { flex-basis: 100%; order: 2; }
+      .sentence-actions { order: 3; width: 100%; }
+      .sentence-actions .btn { flex: 1; }
+      .wordcard { grid-template-columns: minmax(0, 1fr); padding: 12px 14px; }
+      .word-line { flex-wrap: wrap; }
+      .word { flex: 1 1 auto; }
+      .word-emoji { width: 46px; height: 46px; font-size: 26px; }
+      .phonemes { order: 3; flex-basis: 100%; max-width: none; }
+      .word-actions { flex-direction: row; width: 100%; }
+      .word-actions .big { flex: 2; }
+      .word-actions .soft { flex: 1; }
+      .btn.big { min-height: 60px; padding: 10px 14px; }
+      .list-row .muted, .status-chip { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+    body.theme-sensory-calm .pop-anim, body.theme-sensory-calm .new, body.theme-sensory-calm .rest-face { animation: none !important; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between p-3 sm:p-5 select-none transition-colors duration-200" style="background-color: var(--bg-main); color: var(--text-main);">
+<body class="theme-default mode-phonics">
 
-  <!-- Gaze Pointer Simulation Overlay -->
-  <div id="gazeReticle" class="w-10 h-10 rounded-full border-2 border-amber-400 flex items-center justify-center opacity-90 shadow-lg" style="box-shadow: 0 0 15px var(--accent-glow);">
-    <div id="reticleCenterDot" class="w-2 h-2 rounded-full bg-amber-400"></div>
-    <svg class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none">
-      <circle id="cursorDwellCircle" stroke="var(--accent)" stroke-width="3" fill="transparent" r="16" cx="20" cy="20" stroke-dasharray="100.5" stroke-dashoffset="100.5"></circle>
-    </svg>
+  <!-- Gaze dot: the mouse pointer stands in for where the child is looking -->
+  <div id="gazeReticle" aria-hidden="true">
+    <svg viewBox="0 0 100 100"><circle class="g-bg" cx="50" cy="50" r="42"/><circle id="cursorDwellCircle" class="g-ring" cx="50" cy="50" r="42" pathLength="100"/></svg>
+    <span id="reticleCenterDot" class="g-core"></span>
   </div>
 
-  <!-- Top Bar: Header, Language Selector & Primary Controls -->
-  <header class="max-w-7xl mx-auto w-full flex flex-col sm:flex-row items-center justify-between gap-3 pb-3 border-b" style="border-color: var(--border-card);">
-    <div class="flex items-center gap-3">
-      <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl shadow-md border" style="background-color: var(--bg-card); border-color: var(--border-card);">
-        🇩🇰
-      </div>
-      <div>
-        <div class="flex items-center gap-2">
-          <h1 id="headerTitle" class="text-xl sm:text-2xl font-black tracking-tight" style="color: var(--text-main);">
-            GazeVoice AAC • Dansk Phonics
-          </h1>
-          <span class="text-[11px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border-emerald-500/40">
-            Dansk (Æ, Ø, Å)
-          </span>
-        </div>
-        <p id="headerSubtitle" class="text-xs" style="color: var(--text-muted);">
-          Musen simulerer øjenblik • Dwell-udvælgelse • Danske bogstavlyde og sammensmeltninger
-        </p>
-      </div>
-    </div>
-
-    <!-- Quick Status & Controls Toolbar -->
-    <div class="flex items-center flex-wrap gap-2 text-xs">
-      <!-- Language Selector -->
-      <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-card);">
-        <span style="color: var(--text-muted);">🌐 Sprog:</span>
-        <select id="langSelect" class="bg-transparent font-bold focus:outline-none cursor-pointer" style="color: var(--accent);">
-          <option value="da" selected>🇩🇰 Dansk</option>
-          <option value="en">🇬🇧 English</option>
-        </select>
-      </div>
-
-      <!-- Voice Mode Button (Phonics Sound vs Letter Name) -->
-      <button id="btnVoiceMode" class="gaze-target relative overflow-hidden px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 border shadow-sm transition" style="background-color: var(--bg-card); border-color: var(--border-card); color: var(--accent);">
-        <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="var(--accent-glow)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
+  <div class="app">
+    <!-- Top bar: language, letter sound mode, dwell time, settings -->
+    <header class="topbar">
+      <div class="brand">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <defs><linearGradient id="gvGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8C8CFF"/><stop offset=".55" stop-color="#5653E0"/><stop offset="1" stop-color="#DA69C6"/></linearGradient></defs>
+          <rect width="120" height="120" rx="30" fill="url(#gvGrad)"/>
+          <circle cx="96" cy="22" r="6" fill="#FFC83D"/><circle cx="22" cy="28" r="4" fill="#3FC383"/>
+          <path d="M14 58 C32 28 88 28 106 58 C88 88 32 88 14 58Z" fill="#FFFFFF"/><path d="M30 74 L20 102 L52 82 Z" fill="#FFFFFF"/>
+          <circle cx="60" cy="58" r="22" fill="#FFC83D"/>
+          <circle cx="56.5" cy="60" r="8" fill="none" stroke="#1B1F45" stroke-width="5.5"/><path d="M64.5 51.5v17" stroke="#1B1F45" stroke-width="5.5" stroke-linecap="round"/>
+          <circle cx="73" cy="45" r="4" fill="#FFFFFF"/>
         </svg>
-        <span id="voiceModeIcon">🗣️</span>
-        <span id="voiceModeLabel">Bogstavlyd (/æ/)</span>
-      </button>
-
-      <!-- Dwell Preset Dropdown -->
-      <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-card);">
-        <span style="color: var(--text-muted);">⏱️ Dwell:</span>
-        <select id="dwellSelect" class="bg-transparent font-bold focus:outline-none cursor-pointer" style="color: var(--accent);">
-          <option value="500">0.5s (Hurtig)</option>
-          <option value="800" selected>0.8s (Standard)</option>
-          <option value="1200">1.2s (Rolig)</option>
-          <option value="1600">1.6s (Langsom)</option>
-          <option value="2000">2.0s (Træning)</option>
-        </select>
+        <span>GazeVoice</span>
       </div>
 
-      <!-- Theme Switcher -->
-      <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-card);">
-        <span style="color: var(--text-muted);">🎨 Tema:</span>
-        <select id="themeSelect" class="bg-transparent font-bold focus:outline-none cursor-pointer" style="color: var(--accent);">
-          <option value="theme-default">Mørk Navy</option>
-          <option value="theme-yellow-black">Høj Kontrast Gul/Sort</option>
-          <option value="theme-light-contrast">Klar Lys Kontrast</option>
-          <option value="theme-sensory-calm">Rolig Mint</option>
+      <label class="pill" title="Sprog / Language">
+        <span class="flag" id="langFlag"></span>
+        <select id="langSelect" aria-label="Sprog / Language">
+          <option value="da" selected>Dansk</option>
+          <option value="en">English</option>
         </select>
+        <span class="caret-down" aria-hidden="true">▼</span>
+      </label>
+
+      <div class="seg" role="group" aria-label="Letter sound mode">
+        <button type="button" class="gaze-target" id="btnModeLetter" data-mode="letter" aria-pressed="false">A B C</button>
+        <button type="button" class="gaze-target" id="btnModePhonics" data-mode="phonics" aria-pressed="true">/æ/ /b/</button>
       </div>
 
-      <!-- Settings Dialog Trigger -->
-      <button id="btnOpenSettings" class="gaze-target relative overflow-hidden px-3 py-1.5 rounded-xl font-bold flex items-center gap-1.5 border shadow-sm transition" style="background-color: var(--bg-card); border-color: var(--border-card); color: var(--text-main);">
-        <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="var(--accent-glow)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
-        </svg>
-        <span>⚙️</span>
+      <label class="pill" title="Dwell">
+        <span aria-hidden="true">⏳</span>
+        <select id="dwellSelect" aria-label="Dwell time">
+          <option value="500">0.5 s (Hurtig)</option>
+          <option value="800" selected>0.8 s (Standard)</option>
+          <option value="1200">1.2 s (Rolig)</option>
+          <option value="1600">1.6 s (Langsom)</option>
+          <option value="2000">2.0 s (Træning)</option>
+        </select>
+        <span class="caret-down" aria-hidden="true">▼</span>
+      </label>
+
+      <span class="spacer"></span>
+
+      <button type="button" class="pill gaze-target" id="btnOpenSettings">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M18 7h2M4 17h3M12 17h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/><circle cx="15.5" cy="7" r="2.4" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="9.5" cy="17" r="2.4" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
         <span id="settingsBtnLabel">Indstillinger</span>
       </button>
-    </div>
-  </header>
+    </header>
 
-  <!-- PINNED CUSTOMIZABLE QUICK WORDS BAR (Kerneord) -->
-  <section class="max-w-7xl mx-auto w-full my-2.5">
-    <div class="rounded-2xl p-2.5 sm:p-3 border-2 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5 transition-colors" style="background-color: var(--bg-card); border-color: var(--border-card);">
-      <div class="flex items-center gap-2">
-        <span id="quickWordsTitle" class="text-xs uppercase font-extrabold tracking-wider px-2 py-1 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-          <span>⚡</span> Kerneord
-        </span>
-      </div>
-
-      <!-- Dynamic Quick Words Chips -->
-      <div id="quickWordsContainer" class="flex items-center flex-wrap gap-2 flex-1"></div>
-
-      <!-- Customize Quick Words Button -->
-      <button id="btnEditQuickWords" class="gaze-target relative overflow-hidden text-xs font-bold px-3 py-1.5 rounded-xl border flex items-center gap-1.5 shadow-sm transition" style="background-color: var(--bg-main); border-color: var(--border-card); color: var(--text-muted);">
-        <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="var(--accent-glow)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
-        </svg>
-        <span>✏️</span>
-        <span id="editQuickWordsLabel">Rediger Kerneord</span>
-      </button>
-    </div>
-  </section>
-
-  <!-- Digraph / Blend Notification Banner (e.g. E + J -> /aɪ/ or H + V -> /v/) -->
-  <div id="blendBanner" class="max-w-7xl mx-auto w-full mb-2 px-4 py-1.5 rounded-xl border flex items-center justify-between text-xs sm:text-sm font-semibold transition-all duration-300 opacity-0 -translate-y-2 pointer-events-none" style="background-color: rgba(168, 85, 247, 0.15); border-color: var(--highlight-blend); color: var(--text-main);">
-    <div class="flex items-center gap-2">
-      <span class="text-xl">✨</span>
-      <span id="blendText">Lydsammenfald opdaget!</span>
-    </div>
-    <span id="blendBadge" class="text-[11px] font-mono px-2 py-0.5 rounded bg-purple-500/30 text-purple-200 border border-purple-400/40">Fonetik</span>
-  </div>
-
-  <!-- Sentence Construction & Action Output Bar -->
-  <main class="max-w-7xl mx-auto w-full flex-1 flex flex-col gap-2.5">
-    <div class="rounded-2xl p-3.5 sm:p-4 border-2 shadow-xl flex flex-col md:flex-row items-center justify-between gap-3 transition-colors" style="background-color: var(--bg-card); border-color: var(--border-card);">
-      
-      <div class="flex items-center gap-3 w-full md:w-auto flex-1">
-        <div class="flex flex-col items-center justify-center px-3 py-2 rounded-xl text-center min-w-[75px]" style="background-color: var(--bg-main); border: 1px solid var(--border-card);">
-          <span id="sentenceLabel" class="text-[10px] font-bold uppercase tracking-wider" style="color: var(--text-muted);">Sætning</span>
-          <span id="wordEmoji" class="text-3xl mt-0.5">💬</span>
-        </div>
-
-        <div class="flex-1 flex flex-col gap-1 min-w-0">
-          <div id="wordDisplay" class="min-h-[54px] flex items-center gap-2 text-2xl sm:text-3xl font-black tracking-wider px-4 py-1.5 rounded-xl border flex-wrap overflow-hidden" style="background-color: var(--bg-main); border-color: var(--border-card); color: var(--text-main);">
-            <span id="wordDisplayPlaceholder" class="text-slate-500 text-sm sm:text-base font-normal tracking-normal italic">Kig på bogstaver eller kerneord for at tale...</span>
-          </div>
-          <div id="phoneticBreakdown" class="text-xs font-mono px-2 py-0.5 rounded text-purple-300 font-semibold flex items-center gap-1.5">
-            <span id="phonemeLabel">Bogstavlyde:</span>
-            <span id="phoneticSoundList" class="text-purple-200 italic">Ingen</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Action Buttons with Dwell Support -->
-      <div class="flex items-center flex-wrap gap-2 w-full md:w-auto justify-end">
-        <button id="btnSoundOut" class="gaze-target relative group overflow-hidden text-white font-extrabold px-3.5 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition text-sm border border-purple-400/50" style="background: linear-gradient(135deg, #7c3aed, #a855f7);">
-          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="rgba(255,255,255,0.3)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
-          </svg>
-          <span class="text-base">🎶</span>
-          <span id="btnSoundOutLabel">Lydord</span>
-        </button>
-
-        <button id="btnSpeakWord" class="gaze-target relative group overflow-hidden text-white font-extrabold px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition text-sm border border-emerald-400/50" style="background: linear-gradient(135deg, #059669, #10b981);">
-          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="rgba(255,255,255,0.3)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
-          </svg>
-          <span class="text-base">🔊</span>
-          <span id="btnSpeakAllLabel">Sig Alt</span>
-        </button>
-
-        <button id="btnBackspace" class="gaze-target relative group overflow-hidden font-bold px-3 py-2.5 rounded-xl transition text-sm flex items-center gap-1.5 border" style="background-color: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">
-          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="rgba(245, 158, 11, 0.3)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
-          </svg>
-          <span>⌫</span>
-          <span id="btnBackLabel">Slet</span>
-        </button>
-
-        <button id="btnClear" class="gaze-target relative group overflow-hidden font-bold px-3 py-2.5 rounded-xl transition text-sm flex items-center gap-1.5 border" style="background-color: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #f87171;">
-          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="rgba(239, 68, 68, 0.3)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
-          </svg>
-          <span>🗑️</span>
-          <span id="btnClearLabel">Ryd</span>
-        </button>
-      </div>
+    <!-- Pinned customizable quick words (Kerneord) -->
+    <div class="quick-row">
+      <nav class="quick" id="quickWordsContainer" aria-label="Kerneord"></nav>
+      <button type="button" class="edit-quick gaze-target" id="btnEditQuickWords"><span aria-hidden="true">✏️</span><span class="lbl" id="editQuickWordsLabel">Rediger Kerneord</span></button>
     </div>
 
-    <!-- EYE REST & THINKING ZONE (Hvilezone) -->
-    <section id="restZone" class="rounded-2xl p-3 border-2 border-dashed shadow-inner flex items-center justify-between gap-4 transition-all" style="background-color: var(--rest-zone-bg); border-color: var(--rest-zone-border);">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-2xl rest-breathing" style="background-color: var(--bg-card); border: 1px solid var(--border-card);">
-          💤
-        </div>
-        <div>
-          <div class="font-bold text-sm flex items-center gap-2" style="color: var(--text-main);">
-            <span id="restZoneTitle">Hvile- & Tænkezone</span>
-            <span id="restStatusBadge" class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30">
-              Sikker Zone (Ingen klik)
-            </span>
-          </div>
-          <p id="restZoneDesc" class="text-xs" style="color: var(--text-muted);">
-            Placer øjenblikket her for at hvile øjnene, tænke eller lytte uden at aktivere knapper.
-          </p>
-        </div>
-      </div>
-      <div class="hidden sm:flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-xl border" style="background-color: var(--bg-card); border-color: var(--border-card); color: var(--text-muted);">
-        <span>🌙 Øjne Hviler</span>
+    <!-- Sentence (finished words) -->
+    <section class="sentence">
+      <span class="label" id="sentenceLabel">Sætning</span>
+      <div class="sentence-words" id="sentenceWords" aria-live="polite"></div>
+      <div class="sentence-actions">
+        <button type="button" class="btn soft gaze-target" id="btnSpeakWord">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg><span id="btnSpeakAllLabel">Sig Alt</span>
+        </button>
+        <button type="button" class="btn ghost gaze-target" id="btnClear">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span id="btnClearLabel">Ryd</span>
+        </button>
       </div>
     </section>
 
-    <!-- Smart Word Prediction Bar -->
-    <div class="rounded-xl p-2.5 border flex flex-col sm:flex-row items-start sm:items-center gap-2 transition-colors" style="background-color: var(--bg-card); border-color: var(--border-card);">
-      <div class="flex items-center gap-1.5 text-xs font-bold px-2 py-1 rounded-md" style="background-color: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4);">
-        <span>💡</span>
-        <span id="predictionsLabel">Ordforslag:</span>
+    <!-- The word being spelled -->
+    <section class="wordcard">
+      <div class="word-col">
+        <div class="word-line">
+          <span class="word-emoji" id="wordEmoji" aria-hidden="true">💬</span>
+          <div class="word" id="wordDisplay" aria-live="polite"></div>
+          <div class="phonemes" id="phoneticBreakdown"><span id="phonemeLabel">Bogstavlyde:</span> <span class="ipa-list" id="phoneticSoundList">Ingen</span></div>
+        </div>
+        <div class="ideas">
+          <span class="label" id="predictionsLabel">Ordforslag:</span>
+          <div class="ideas-row" id="predictionsList"></div>
+        </div>
       </div>
-      <div id="predictionsList" class="flex items-center gap-2 flex-wrap flex-1 min-h-[32px]">
-        <span id="predictionsPlaceholder" class="text-xs italic" style="color: var(--text-muted);">Skriv bogstaver for at se forslag her</span>
-      </div>
-    </div>
-
-    <!-- Letter Grid & Accessible Spacebar Container -->
-    <div class="flex-1 flex flex-col gap-2.5">
-      <div id="gridContainer" class="flex-1 grid gap-2 sm:gap-2.5 transition-all min-h-[290px]"></div>
-
-      <!-- ACCESSIBLE FULL-WIDTH SPACEBAR -->
-      <div class="w-full flex justify-center">
-        <button id="btnSpacebar" class="gaze-target relative group overflow-hidden w-full max-w-2xl py-3 px-6 rounded-2xl border-2 font-black flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer" style="background-color: var(--bg-card); border-color: var(--border-card); color: var(--text-main);">
-          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="var(--accent-glow)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
-          </svg>
-          <span class="text-xl">␣</span>
-          <span id="spacebarLabel" class="text-sm sm:text-base tracking-widest uppercase">MELLEMRUM (Nyt Ord i Sætning)</span>
+      <div class="word-actions">
+        <button type="button" class="btn primary big gaze-target" id="btnReadWord">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9v6h4l5 4.5v-15L7.5 9z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.2 5.8a8.8 8.8 0 0 1 0 12.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          <span id="btnReadWordLabel">Læs ordet højt</span>
+        </button>
+        <button type="button" class="btn soft gaze-target" id="btnSoundOut">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="9" r="2.4" fill="currentColor"/><circle cx="12" cy="9" r="2.4" fill="currentColor"/><circle cx="19" cy="9" r="2.4" fill="currentColor"/><path d="M4 15c3 4 13 4 16 0" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M17.5 13.2l2.6 1.6-1 2.9" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="btnSoundOutLabel">Lydord</span>
         </button>
       </div>
-    </div>
-  </main>
+    </section>
 
-  <!-- Quick Words Customizer Modal -->
-  <div id="quickWordsModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="max-w-md w-full rounded-2xl p-6 border shadow-2xl flex flex-col gap-4" style="background-color: var(--bg-card); border-color: var(--border-card); color: var(--text-main);">
-      <div class="flex items-center justify-between border-b pb-3" style="border-color: var(--border-card);">
-        <h2 class="text-base font-black flex items-center gap-2">
-          <span>⚡</span> <span id="modalQWTitle">Rediger Faste Kerneord</span>
-        </h2>
-        <button id="btnCloseQuickWords" class="text-xl font-bold px-2.5 py-1 rounded-lg hover:bg-white/10">&times;</button>
+    <!-- Eye rest & thinking zone: dwell is switched off here -->
+    <section class="rest" id="restZone">
+      <span class="rest-face" aria-hidden="true">💤</span>
+      <span id="restZoneTitle">Hvile- &amp; Tænkezone</span>
+      <span class="rest-badge" id="restStatusBadge">Sikker Zone (Ingen klik)</span>
+      <span class="rest-desc" id="restZoneDesc">Placer øjenblikket her for at hvile øjnene, tænke eller lytte uden at aktivere knapper.</span>
+    </section>
+
+    <!-- Letter keys (Back key is added at the end) -->
+    <div class="keyboard" id="gridContainer" role="group" aria-label="Bogstaver"></div>
+
+    <!-- Accessible full-width spacebar -->
+    <button type="button" class="spacebar gaze-target" id="btnSpacebar"><span class="space-glyph" aria-hidden="true">␣</span><span id="spacebarLabel">MELLEMRUM (Nyt Ord i Sætning)</span></button>
+  </div>
+
+  <!-- Blend / spoken-word notification -->
+  <div class="toast" id="blendBanner" role="status" aria-live="polite">
+    <span class="toast-ico" aria-hidden="true">✨</span>
+    <span id="blendText">Lydsammenfald opdaget!</span>
+    <span class="toast-badge" id="blendBadge">Fonetik</span>
+  </div>
+
+  <!-- Quick words editor -->
+  <div class="scrim" id="quickWordsModal" hidden>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="modalQWTitle">
+      <div class="dialog-head">
+        <h2><span aria-hidden="true">⚡</span> <span id="modalQWTitle">Rediger Faste Kerneord</span></h2>
+        <button type="button" class="close-x" id="btnCloseQuickWords" aria-label="Luk">&times;</button>
       </div>
-
-      <p id="modalQWDesc" class="text-xs" style="color: var(--text-muted);">
-        Tilføj ord som barnet kan sige hurtigt med et enkelt blik.
-      </p>
-
-      <div class="flex gap-2">
-        <input type="text" id="newWordInput" placeholder="Nyt ord (f.eks. VAND)" class="flex-1 px-3 py-2 rounded-xl border bg-transparent font-bold text-sm focus:outline-none uppercase" style="border-color: var(--border-card); color: var(--text-main);">
-        <input type="text" id="newEmojiInput" placeholder="Emoji 💧" class="w-20 px-3 py-2 rounded-xl border bg-transparent font-bold text-sm focus:outline-none text-center" style="border-color: var(--border-card); color: var(--text-main);">
-        <button id="btnAddQuickWord" class="px-4 py-2 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition text-sm">
-          Tilføj
-        </button>
+      <p class="help" id="modalQWDesc">Tilføj ord som barnet kan sige hurtigt med et enkelt blik.</p>
+      <div class="field-row">
+        <input type="text" id="newWordInput" placeholder="Nyt ord (f.eks. VAND)" aria-label="Nyt ord">
+        <input type="text" id="newEmojiInput" placeholder="Emoji 💧" aria-label="Emoji">
+        <button type="button" class="btn primary" id="btnAddQuickWord">Tilføj</button>
       </div>
-
-      <div class="flex flex-col gap-1.5 max-h-56 overflow-y-auto pr-1">
-        <label class="font-bold text-xs" id="currentQWLabel">Nuværende Kerneord:</label>
-        <div id="quickWordsEditList" class="flex flex-col gap-1.5"></div>
+      <div class="set-group">
+        <h3 id="currentQWLabel">Nuværende Kerneord</h3>
+        <div class="list" id="quickWordsEditList"></div>
       </div>
-
-      <div class="flex justify-between items-center pt-2 border-t" style="border-color: var(--border-card);">
-        <button id="btnResetQuickWords" class="text-xs text-rose-400 hover:underline">
-          Nulstil til Standard
-        </button>
-        <button id="btnSaveQuickWords" class="px-5 py-2 rounded-xl font-bold text-white bg-amber-500 hover:bg-amber-600 transition text-sm">
-          Gem & Luk
-        </button>
+      <div class="dialog-foot">
+        <button type="button" class="link-danger" id="btnResetQuickWords">Nulstil til Standard</button>
+        <button type="button" class="btn primary" id="btnSaveQuickWords">Gem &amp; Luk</button>
       </div>
     </div>
   </div>
 
-  <!-- Accessibility Settings Modal -->
-  <div id="settingsModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="max-w-lg w-full rounded-2xl p-6 border shadow-2xl flex flex-col gap-5" style="background-color: var(--bg-card); border-color: var(--border-card); color: var(--text-main);">
-      <div class="flex items-center justify-between border-b pb-3" style="border-color: var(--border-card);">
-        <h2 class="text-lg font-black flex items-center gap-2">
-          <span>⚙️</span> <span id="settingsModalTitle">Indstillinger for Øjenstyring</span>
-        </h2>
-        <button id="btnCloseSettings" class="text-xl font-bold px-2.5 py-1 rounded-lg hover:bg-white/10">&times;</button>
+  <!-- Settings drawer -->
+  <div class="scrim drawer-scrim" id="settingsModal" hidden>
+    <div class="dialog drawer" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+      <div class="dialog-head">
+        <h2 id="settingsModalTitle">Indstillinger for Øjenstyring</h2>
+        <button type="button" class="close-x" id="btnCloseSettings" aria-label="Luk">&times;</button>
       </div>
 
-      <div class="flex flex-col gap-4 text-xs sm:text-sm">
-        <div class="flex flex-col gap-1.5">
-          <label class="font-bold" id="layoutSettingLabel">Tastaturopsætning:</label>
-          <div class="grid grid-cols-3 gap-2">
-            <button class="layout-btn px-3 py-2 rounded-xl border text-center font-bold transition" data-layout="alphabet">
-              Alfabet (A-Å)
-            </button>
-            <button class="layout-btn px-3 py-2 rounded-xl border text-center font-bold transition" data-layout="phonics-order">
-              Lydrækkefølge
-            </button>
-            <button class="layout-btn px-3 py-2 rounded-xl border text-center font-bold transition" data-layout="starter">
-              Start (Store mål)
-            </button>
-          </div>
-          <span class="text-[11px]" style="color: var(--text-muted);" id="layoutSettingHint">Alfabetisk rækkefølge med Æ, Ø, Å.</span>
+      <div class="set-group">
+        <h3 id="layoutSettingLabel">Tastaturopsætning</h3>
+        <div class="seg wide" role="group">
+          <button type="button" class="layout-btn" data-layout="alphabet" aria-pressed="true">Alfabet (A-Å)</button>
+          <button type="button" class="layout-btn" data-layout="phonics-order" aria-pressed="false">Lydrækkefølge</button>
+          <button type="button" class="layout-btn" data-layout="starter" aria-pressed="false">Start (Store mål)</button>
         </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div class="flex flex-col gap-1">
-            <label class="font-bold" id="pitchLabel">Stemmetone (Pitch):</label>
-            <input type="range" id="pitchSlider" min="0.8" max="1.6" step="0.1" value="1.15" class="accent-amber-400">
-            <span class="text-[10px]" style="color: var(--text-muted);" id="pitchHint">Lysere tone lyder venligere for børn.</span>
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="font-bold" id="rateLabel">Talehastighed (Rate):</label>
-            <input type="range" id="rateSlider" min="0.6" max="1.2" step="0.05" value="0.85" class="accent-amber-400">
-            <span class="text-[10px]" style="color: var(--text-muted);" id="rateHint">Rolig hastighed hjælper fonetisk forståelse.</span>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-between p-3 rounded-xl border" style="border-color: var(--border-card); background-color: var(--bg-main);">
-          <div>
-            <div class="font-bold" id="autoBlendTitle">Automatisk Lydsammenfald (Blends)</div>
-            <div class="text-[11px]" style="color: var(--text-muted);" id="autoBlendDesc">Bogstaver smelter sammen til lyde (f.eks. H+V = /v/, E+J = /aɪ/)</div>
-          </div>
-          <input type="checkbox" id="toggleBlending" checked class="w-5 h-5 accent-purple-500 cursor-pointer">
-        </div>
-
-        <div class="flex items-center justify-between gap-3 p-3 rounded-xl border" style="border-color: var(--border-card); background-color: var(--bg-main);">
-          <div>
-            <div class="font-bold" id="recordSettingTitle">Optag egne lyde</div>
-            <div class="text-[11px]" style="color: var(--text-muted);" id="recordSettingDesc">Optag rene bogstavlyde (f.eks. /j/) med mikrofonen. Optagelser bruges i stedet for computerstemmen.</div>
-          </div>
-          <button id="btnOpenRecord" class="px-3 py-2 rounded-xl font-bold text-white bg-rose-600 hover:bg-rose-500 transition text-xs whitespace-nowrap">
-            🎙️ <span id="btnOpenRecordLabel">Optag lyde</span>
-          </button>
-        </div>
+        <p class="help" id="layoutSettingHint">Alfabetisk rækkefølge med Æ, Ø, Å.</p>
       </div>
 
-      <div class="pt-2 flex justify-end">
-        <button id="btnSaveSettings" class="px-5 py-2 rounded-xl font-bold text-white bg-amber-500 hover:bg-amber-600 transition">
-          Færdig
-        </button>
+      <div class="set-group">
+        <h3 id="themeLabel">Tema</h3>
+        <div class="seg wide" role="group">
+          <button type="button" class="theme-btn" data-theme="theme-default" aria-pressed="true">Mørk Navy</button>
+          <button type="button" class="theme-btn" data-theme="theme-yellow-black" aria-pressed="false">Høj Kontrast Gul/Sort</button>
+          <button type="button" class="theme-btn" data-theme="theme-light-contrast" aria-pressed="false">Klar Lys Kontrast</button>
+          <button type="button" class="theme-btn" data-theme="theme-sensory-calm" aria-pressed="false">Rolig Mint</button>
+        </div>
+        <p class="help">Gule taster er vokaler.</p>
+      </div>
+
+      <div class="set-group">
+        <h3 id="pitchLabel">Stemmetone (Pitch)</h3>
+        <div class="range-row"><input type="range" id="pitchSlider" min="0.8" max="1.6" step="0.1" value="1.15" aria-label="Pitch"><span class="range-val" id="pitchVal">1.15</span></div>
+        <p class="help" id="pitchHint">Lysere tone lyder venligere for børn.</p>
+      </div>
+
+      <div class="set-group">
+        <h3 id="rateLabel">Talehastighed (Rate)</h3>
+        <div class="range-row"><input type="range" id="rateSlider" min="0.6" max="1.2" step="0.05" value="0.85" aria-label="Rate"><span class="range-val" id="rateVal">0.85</span></div>
+        <p class="help" id="rateHint">Rolig hastighed hjælper fonetisk forståelse.</p>
+      </div>
+
+      <label class="check-card" for="toggleBlending">
+        <span><b id="autoBlendTitle">Automatisk Lydsammenfald (Blends)</b><span class="help" id="autoBlendDesc">Bogstaver smelter sammen til lyde (f.eks. H+V = /v/, E+J = /aɪ/)</span></span>
+        <input type="checkbox" id="toggleBlending" checked>
+      </label>
+
+      <div class="check-card">
+        <span><b id="recordSettingTitle">Optag egne lyde</b><span class="help" id="recordSettingDesc">Optag rene bogstavlyde (f.eks. /j/) med mikrofonen. Optagelser bruges i stedet for computerstemmen.</span></span>
+        <button type="button" class="btn rec" id="btnOpenRecord">🎙️ <span id="btnOpenRecordLabel">Optag lyde</span></button>
+      </div>
+
+      <div class="dialog-foot" style="margin-top:auto">
+        <span></span>
+        <button type="button" class="btn primary" id="btnSaveSettings">Færdig</button>
       </div>
     </div>
   </div>
 
-  <!-- Record Own Sounds Modal -->
-  <div id="recordModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="max-w-2xl w-full max-h-[90vh] rounded-2xl p-6 border shadow-2xl flex flex-col gap-4" style="background-color: var(--bg-card); border-color: var(--border-card); color: var(--text-main);">
-      <div class="flex items-center justify-between border-b pb-3" style="border-color: var(--border-card);">
-        <h2 class="text-lg font-black flex items-center gap-2">
-          <span>🎙️</span> <span id="recordModalTitle">Optag egne lyde</span>
-        </h2>
-        <button id="btnCloseRecord" class="text-xl font-bold px-2.5 py-1 rounded-lg hover:bg-white/10">&times;</button>
+  <!-- Record own sounds -->
+  <div class="scrim" id="recordModal" hidden>
+    <div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="recordModalTitle">
+      <div class="dialog-head">
+        <h2><span aria-hidden="true">🎙️</span> <span id="recordModalTitle">Optag egne lyde</span></h2>
+        <button type="button" class="close-x" id="btnCloseRecord" aria-label="Luk">&times;</button>
       </div>
-
-      <p id="recordModalDesc" class="text-xs" style="color: var(--text-muted);"></p>
-
-      <div id="recordList" class="flex flex-col gap-1.5 overflow-y-auto pr-1 min-h-0"></div>
-
-      <div class="pt-2 flex justify-end border-t" style="border-color: var(--border-card);">
-        <button id="btnDoneRecord" class="px-5 py-2 rounded-xl font-bold text-white bg-amber-500 hover:bg-amber-600 transition text-sm">
-          Færdig
-        </button>
+      <p class="help" id="recordModalDesc"></p>
+      <div class="list" id="recordList"></div>
+      <div class="dialog-foot">
+        <span></span>
+        <button type="button" class="btn primary" id="btnDoneRecord">Færdig</button>
       </div>
     </div>
   </div>
@@ -615,6 +737,37 @@
       { text: 'I WANT', emoji: '💬', speech: 'I want' }
     ];
 
+    // Labels on the main screen in both languages
+    const UI = {
+      da: {
+        sentence: 'Sætning', phonemes: 'Bogstavlyde:', none: 'Ingen', soundOut: 'Lydord', speakAll: 'Sig Alt', readWord: 'Læs ordet højt',
+        back: 'Slet', clear: 'Ryd', restTitle: 'Hvile- & Tænkezone', restBadge: 'Sikker Zone (Ingen klik)', restBadgeOn: '💤 Øjnene hviler trygt',
+        restDesc: 'Placer øjenblikket her for at hvile øjnene, tænke eller lytte uden at aktivere knapper.',
+        predictions: 'Ordforslag:', predEmpty: 'Skriv bogstaver for at se forslag her', predNone: 'Søger efter ordforslag...',
+        settings: 'Indstillinger', quickTitle: 'Kerneord', editQuick: 'Rediger Kerneord', spacebar: 'MELLEMRUM (Nyt Ord i Sætning)',
+        emptyWord: 'Kig på bogstaver eller kerneord for at tale...', emptySentence: 'Dine ord kommer her', keys: 'Bogstaver'
+      },
+      en: {
+        sentence: 'Sentence', phonemes: 'Current Phonemes:', none: 'None', soundOut: 'Flow Sounds', speakAll: 'Speak All', readWord: 'Read word out loud',
+        back: 'Back', clear: 'Clear', restTitle: 'Eye Rest & Thinking Zone', restBadge: 'Safe Zone (No Clicks)', restBadgeOn: '💤 Eyes Resting Safely',
+        restDesc: 'Park your gaze here to rest your eyes, think, or read safely without clicks.',
+        predictions: 'Word Suggestions:', predEmpty: 'Type letters to see predictions here', predNone: 'Looking for matching words...',
+        settings: 'Settings', quickTitle: 'Quick Words', editQuick: 'Edit Quick Words', spacebar: 'SPACEBAR (Add Space to Sentence)',
+        emptyWord: 'Hover mouse over letters or quick words to speak...', emptySentence: 'Your words will show up here', keys: 'Letters'
+      }
+    };
+
+    const FLAGS = {
+      da: '<svg viewBox="0 0 37 28" aria-hidden="true"><rect width="37" height="28" fill="#C8102E"/><rect x="12" width="4" height="28" fill="#fff"/><rect y="12" width="37" height="4" fill="#fff"/></svg>',
+      en: '<svg viewBox="0 0 60 30" aria-hidden="true"><clipPath id="ukS"><path d="M0,0 v30 h60 v-30 z"/></clipPath><clipPath id="ukT"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath><g clip-path="url(#ukS)"><path d="M0,0 v30 h60 v-30 z" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#ukT)" stroke="#C8102E" stroke-width="4"/><path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/><path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/></g></svg>'
+    };
+    const VOWELS = { da: 'AEIOUYÆØÅ', en: 'AEIOU' };
+    const KEY_HUES = ['coral', 'aqua', 'leaf', 'berry', 'violet'];
+    const QUICK_HUES = ['leaf', 'coral', 'sun', 'aqua', 'violet', 'berry', 'coral', 'sun'];
+    const BACK_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6-7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M11.5 9.5l5 5M16.5 9.5l-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+
+    const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
     /* =====================================================================
        2. APPLICATION STATE
        ===================================================================== */
@@ -633,59 +786,60 @@
     let isRestingEyes = false;
     let lastSpokenText = '';
     let lastSpokenTime = 0;
+    let animateNextLetter = false;
+    let animateNextChip = false;
 
-    let quickWords = JSON.parse(localStorage.getItem('gaze_quick_words_' + currentLang) || 'null') || danishDefaultQuickWords;
+    function loadQuickWords(lang) {
+      let saved = null;
+      try { saved = JSON.parse(localStorage.getItem('gaze_quick_words_' + lang) || 'null'); } catch (e) { saved = null; }
+      return Array.isArray(saved) ? saved : [...(lang === 'da' ? danishDefaultQuickWords : englishDefaultQuickWords)];
+    }
+    function saveQuickWords() {
+      try { localStorage.setItem('gaze_quick_words_' + currentLang, JSON.stringify(quickWords)); } catch (e) {}
+    }
+    let quickWords = loadQuickWords(currentLang);
 
     /* =====================================================================
        3. DOM ELEMENTS
        ===================================================================== */
-    const langSelect = document.getElementById('langSelect');
-    const headerTitle = document.getElementById('headerTitle');
-    const headerSubtitle = document.getElementById('headerSubtitle');
-    const gazeReticle = document.getElementById('gazeReticle');
-    const reticleCenterDot = document.getElementById('reticleCenterDot');
-    const cursorDwellCircle = document.getElementById('cursorDwellCircle');
-    const gridContainer = document.getElementById('gridContainer');
-    const wordDisplay = document.getElementById('wordDisplay');
-    const wordEmoji = document.getElementById('wordEmoji');
-    const phoneticSoundList = document.getElementById('phoneticSoundList');
-    const blendBanner = document.getElementById('blendBanner');
-    const blendText = document.getElementById('blendText');
-    const predictionsList = document.getElementById('predictionsList');
-    const restZone = document.getElementById('restZone');
-    const restStatusBadge = document.getElementById('restStatusBadge');
+    const $ = (id) => document.getElementById(id);
+    const langSelect = $('langSelect');
+    const gazeReticle = $('gazeReticle');
+    const cursorDwellCircle = $('cursorDwellCircle');
+    const gridContainer = $('gridContainer');
+    const sentenceWords = $('sentenceWords');
+    const wordDisplay = $('wordDisplay');
+    const wordEmoji = $('wordEmoji');
+    const phoneticSoundList = $('phoneticSoundList');
+    const blendBanner = $('blendBanner');
+    const blendText = $('blendText');
+    const predictionsList = $('predictionsList');
+    const restZone = $('restZone');
+    const restStatusBadge = $('restStatusBadge');
 
-    const quickWordsContainer = document.getElementById('quickWordsContainer');
-    const btnEditQuickWords = document.getElementById('btnEditQuickWords');
-    const quickWordsModal = document.getElementById('quickWordsModal');
-    const btnCloseQuickWords = document.getElementById('btnCloseQuickWords');
-    const btnSaveQuickWords = document.getElementById('btnSaveQuickWords');
-    const btnResetQuickWords = document.getElementById('btnResetQuickWords');
-    const quickWordsEditList = document.getElementById('quickWordsEditList');
-    const newWordInput = document.getElementById('newWordInput');
-    const newEmojiInput = document.getElementById('newEmojiInput');
-    const btnAddQuickWord = document.getElementById('btnAddQuickWord');
+    const quickWordsContainer = $('quickWordsContainer');
+    const btnEditQuickWords = $('btnEditQuickWords');
+    const quickWordsModal = $('quickWordsModal');
+    const quickWordsEditList = $('quickWordsEditList');
+    const newWordInput = $('newWordInput');
+    const newEmojiInput = $('newEmojiInput');
 
-    const btnVoiceMode = document.getElementById('btnVoiceMode');
-    const voiceModeIcon = document.getElementById('voiceModeIcon');
-    const voiceModeLabel = document.getElementById('voiceModeLabel');
-    const dwellSelect = document.getElementById('dwellSelect');
-    const themeSelect = document.getElementById('themeSelect');
-    const btnOpenSettings = document.getElementById('btnOpenSettings');
-    const settingsModal = document.getElementById('settingsModal');
-    const btnCloseSettings = document.getElementById('btnCloseSettings');
-    const btnSaveSettings = document.getElementById('btnSaveSettings');
+    const btnModeLetter = $('btnModeLetter');
+    const btnModePhonics = $('btnModePhonics');
+    const dwellSelect = $('dwellSelect');
+    const btnOpenSettings = $('btnOpenSettings');
+    const settingsModal = $('settingsModal');
+    const recordModal = $('recordModal');
 
-    const btnSoundOut = document.getElementById('btnSoundOut');
-    const btnSpeakWord = document.getElementById('btnSpeakWord');
-    const btnBackspace = document.getElementById('btnBackspace');
-    const btnClear = document.getElementById('btnClear');
-    const btnSpacebar = document.getElementById('btnSpacebar');
-    const spacebarLabel = document.getElementById('spacebarLabel');
+    const btnReadWord = $('btnReadWord');
+    const btnSoundOut = $('btnSoundOut');
+    const btnSpeakWord = $('btnSpeakWord');
+    const btnClear = $('btnClear');
+    const btnSpacebar = $('btnSpacebar');
 
-    const pitchSlider = document.getElementById('pitchSlider');
-    const rateSlider = document.getElementById('rateSlider');
-    const toggleBlending = document.getElementById('toggleBlending');
+    const pitchSlider = $('pitchSlider');
+    const rateSlider = $('rateSlider');
+    const toggleBlending = $('toggleBlending');
 
     function getActiveDataset() {
       if (currentLang === 'da') {
@@ -693,6 +847,10 @@
       }
       return { phonics: englishPhonics, blends: englishBlends, words: englishWords };
     }
+    const ui = (key) => UI[currentLang][key];
+
+    function openModal(el) { el.hidden = false; }
+    function closeModal(el) { el.hidden = true; }
 
     /* =====================================================================
        4. SPEECH ENGINE WITH DANISH (DA-DK) & ENGLISH VOICE SELECTION
@@ -721,7 +879,7 @@
         if (daVoice) utterance.voice = daVoice;
       } else {
         utterance.lang = 'en-US';
-        const enVoice = voices.find(v => v.lang.startsWith('en') && 
+        const enVoice = voices.find(v => v.lang.startsWith('en') &&
           (v.name.includes('Samantha') || v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Junior')));
         if (enVoice) utterance.voice = enVoice;
       }
@@ -970,7 +1128,7 @@
     }
 
     function renderRecordList() {
-      const recordList = document.getElementById('recordList');
+      const recordList = $('recordList');
       if (!recordList) return;
       const { phonics, blends } = getActiveDataset();
 
@@ -986,31 +1144,25 @@
         const busyElsewhere = activeRecordingSoundKey !== null && !isRecordingThis;
 
         const el = document.createElement('div');
-        el.className = 'flex items-center justify-between gap-2 p-2 rounded-xl border text-xs';
-        el.style.borderColor = isRecordingThis ? '#f43f5e' : 'var(--border-card)';
-        el.style.backgroundColor = 'var(--bg-main)';
+        el.className = 'list-row' + (isRecordingThis ? ' recording' : '');
         el.innerHTML = `
-          <div class="flex items-center gap-3 min-w-0">
-            <span class="text-xl font-black w-10 text-center">${row.key}</span>
-            <span class="font-mono font-bold text-purple-300 w-14">${row.ipa}</span>
-            <span class="truncate" style="color: var(--text-muted);">${row.hint}</span>
+          <div class="who">
+            <span class="big-letter">${row.key}</span>
+            <span class="ipa">${row.ipa}</span>
+            <span class="muted">${row.hint}</span>
           </div>
-          <div class="flex items-center gap-1.5 shrink-0">
-            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${recorded ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-500/20'}" style="${recorded ? '' : 'color: var(--text-muted);'}">
+          <div class="tools">
+            <span class="status-chip ${recorded ? 'ok' : ''}">
               ${recorded ? tr('✅ Egen optagelse', '✅ Own recording') : tr('Stemme: "' + row.fallback + '"', 'Voice: "' + row.fallback + '"')}
             </span>
-            <button data-action="record" data-key="${row.key}" ${busyElsewhere ? 'disabled' : ''}
-              class="px-2.5 py-1 rounded-lg font-bold text-white ${isRecordingThis ? 'bg-rose-500 animate-pulse' : 'bg-rose-600 hover:bg-rose-500'} disabled:opacity-40">
+            <button type="button" data-action="record" data-key="${row.key}" ${busyElsewhere ? 'disabled' : ''}
+              class="mini-btn rec ${isRecordingThis ? 'on' : ''}">
               ${isRecordingThis ? tr('■ Stop', '■ Stop') : tr('● Optag', '● Record')}
             </button>
-            <button data-action="play" data-key="${row.key}" data-fallback="${row.fallback}" ${activeRecordingSoundKey ? 'disabled' : ''}
-              class="px-2.5 py-1 rounded-lg font-bold border hover:bg-white/10 disabled:opacity-40" style="border-color: var(--border-card);">
-              ▶
-            </button>
-            <button data-action="delete" data-key="${row.key}" ${recorded && !activeRecordingSoundKey ? '' : 'disabled'}
-              class="px-2 py-1 rounded-lg font-bold text-rose-400 hover:bg-rose-500/10 disabled:opacity-30" title="${tr('Slet optagelse', 'Delete recording')}">
-              ✕
-            </button>
+            <button type="button" data-action="play" data-key="${row.key}" data-fallback="${row.fallback}" ${activeRecordingSoundKey ? 'disabled' : ''}
+              class="mini-btn" aria-label="${tr('Afspil', 'Play')}">▶</button>
+            <button type="button" data-action="delete" data-key="${row.key}" ${recorded && !activeRecordingSoundKey ? '' : 'disabled'}
+              class="mini-btn del" title="${tr('Slet optagelse', 'Delete recording')}" aria-label="${tr('Slet optagelse', 'Delete recording')}">✕</button>
           </div>
         `;
         recordList.appendChild(el);
@@ -1058,6 +1210,12 @@
       return segments;
     }
 
+    function lightSegment(index) {
+      wordDisplay.querySelectorAll('[data-seg]').forEach(el => {
+        el.classList.toggle('lit', index === 'all' || String(index) === el.dataset.seg);
+      });
+    }
+
     async function soundOutWord() {
       const targetWord = getCurrentWord() || currentSentence.trim();
       if (!targetWord) {
@@ -1066,9 +1224,11 @@
       }
 
       const segments = segmentWordIntoPhonemes(targetWord);
-      for (let s of segments) {
+      for (let i = 0; i < segments.length; i++) {
+        const s = segments[i];
         const spoken = s.isBlend ? s.data.spoken : s.data.sound;
         playChime(640, 'triangle');
+        lightSegment(i);
         const playedMs = playSound(s.text, spoken, voicePitch + 0.1, 0.75);
         showBlendBanner(`${currentLang === 'da' ? 'Lyder som' : 'Flowing'}: ${s.text} (${s.data.ipa})`);
         await new Promise(r => setTimeout(r, Math.max(650, playedMs + 150)));
@@ -1076,67 +1236,82 @@
 
       await new Promise(r => setTimeout(r, 300));
       playChime(880, 'sine');
+      lightSegment('all');
       speakUtterance(targetWord, voicePitch, voiceRate);
       showBlendBanner(`✨ ${currentLang === 'da' ? 'Ordet er' : 'Word'}: ${targetWord}!`);
+      setTimeout(() => lightSegment(-1), 1400);
     }
 
+    let bannerTimer = null;
     function showBlendBanner(msg) {
       blendText.innerHTML = msg;
-      blendBanner.style.opacity = '1';
-      blendBanner.style.transform = 'translateY(0)';
-      setTimeout(() => {
-        blendBanner.style.opacity = '0';
-        blendBanner.style.transform = 'translateY(-8px)';
-      }, 2500);
+      blendBanner.classList.add('show');
+      clearTimeout(bannerTimer);
+      bannerTimer = setTimeout(() => blendBanner.classList.remove('show'), 2500);
     }
 
     /* =====================================================================
-       5. EYE REST ZONE LOGIC
+       5. GAZE DOT & EYE REST ZONE
        ===================================================================== */
+    function setReticleProgress(p) {
+      cursorDwellCircle.style.strokeDashoffset = String(100 - p * 100);
+    }
+
     restZone.addEventListener('mouseenter', () => {
       isRestingEyes = true;
-      gazeReticle.style.borderColor = '#38bdf8';
-      reticleCenterDot.style.backgroundColor = '#38bdf8';
-      gazeReticle.style.boxShadow = '0 0 20px rgba(56, 189, 248, 0.5)';
-      cursorDwellCircle.style.strokeDashoffset = '100.5';
-      restStatusBadge.textContent = currentLang === 'da' ? '💤 Øjnene hviler trygt' : '💤 Eyes Resting Safely';
-      restStatusBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500 text-white animate-pulse';
+      gazeReticle.classList.add('resting');
+      restZone.classList.add('is-resting');
+      setReticleProgress(0);
+      restStatusBadge.textContent = ui('restBadgeOn');
     });
 
     restZone.addEventListener('mouseleave', () => {
       isRestingEyes = false;
-      gazeReticle.style.borderColor = 'var(--accent)';
-      reticleCenterDot.style.backgroundColor = 'var(--accent)';
-      gazeReticle.style.boxShadow = '0 0 15px var(--accent-glow)';
-      restStatusBadge.textContent = currentLang === 'da' ? 'Sikker Zone (Ingen klik)' : 'Safe Zone (No Clicks)';
-      restStatusBadge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30';
+      gazeReticle.classList.remove('resting');
+      restZone.classList.remove('is-resting');
+      restStatusBadge.textContent = ui('restBadge');
     });
 
-    window.addEventListener('mousemove', (e) => {
+    window.addEventListener('pointermove', (e) => {
+      if (e.pointerType === 'touch') return;
       gazeReticle.style.left = `${e.clientX}px`;
       gazeReticle.style.top = `${e.clientY}px`;
-    });
+      gazeReticle.classList.add('show');
+    }, { passive: true });
+    window.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'touch') gazeReticle.classList.remove('show');
+    }, { passive: true });
+    document.addEventListener('mouseout', (e) => { if (!e.relatedTarget) gazeReticle.classList.remove('show'); });
 
     /* =====================================================================
        6. DWELL ENGINE
+       The target fills up from the bottom and the ring around the gaze dot
+       closes while the mouse (= the eyes) rests on it.
        ===================================================================== */
+    function popElement(el) {
+      el.classList.remove('pop-anim');
+      void el.offsetWidth;
+      el.classList.add('pop-anim');
+      setTimeout(() => el.classList.remove('pop-anim'), 340);
+    }
+
     function attachDwellListeners(element, onComplete) {
       let animFrameId = null;
 
+      function setProgress(p) {
+        element.style.setProperty('--p', p.toFixed(3));
+        setReticleProgress(p);
+      }
+
       function startDwell() {
-        if (isCoolingDown || isRestingEyes) return;
+        if (isRestingEyes) return;
+        if (isCoolingDown) {
+          setTimeout(() => { if (element.matches(':hover') && !animFrameId) startDwell(); }, 340);
+          return;
+        }
         activeDwellTarget = element;
         dwellStartTime = performance.now();
-
-        const circle = element.querySelector('.dwell-ring-circle');
-        const rect = element.querySelector('.dwell-rect');
-
-        const circumference = 100.5;
-        let cardCircumference = 0;
-        if (circle) {
-          cardCircumference = parseFloat(circle.getAttribute('stroke-dasharray')) || 170;
-          circle.style.strokeDashoffset = cardCircumference;
-        }
+        element.classList.add('is-dwelling');
 
         function frame(now) {
           if (isRestingEyes) {
@@ -1146,21 +1321,13 @@
 
           const elapsed = now - dwellStartTime;
           const progress = Math.min(elapsed / dwellDuration, 1.0);
-
-          if (circle) {
-            circle.style.strokeDashoffset = cardCircumference * (1 - progress);
-          }
-          if (rect) {
-            rect.style.transform = `scaleX(${progress})`;
-          }
-          if (cursorDwellCircle) {
-            cursorDwellCircle.style.strokeDashoffset = circumference * (1 - progress);
-          }
+          setProgress(progress);
 
           if (progress < 1.0) {
             animFrameId = requestAnimationFrame(frame);
           } else {
             playChime(750, 'sine');
+            popElement(element);
             onComplete();
             cancelDwell();
 
@@ -1181,18 +1348,8 @@
           cancelAnimationFrame(animFrameId);
           animFrameId = null;
         }
-        const circle = element.querySelector('.dwell-ring-circle');
-        const rect = element.querySelector('.dwell-rect');
-        if (circle) {
-          const cardCircumference = parseFloat(circle.getAttribute('stroke-dasharray')) || 170;
-          circle.style.strokeDashoffset = cardCircumference;
-        }
-        if (rect) {
-          rect.style.transform = 'scaleX(0)';
-        }
-        if (cursorDwellCircle) {
-          cursorDwellCircle.style.strokeDashoffset = '100.5';
-        }
+        element.classList.remove('is-dwelling');
+        setProgress(0);
         activeDwellTarget = null;
       }
 
@@ -1202,6 +1359,7 @@
       element.addEventListener('click', () => {
         cancelDwell();
         playChime(750, 'sine');
+        popElement(element);
         onComplete();
       });
     }
@@ -1211,32 +1369,23 @@
        ===================================================================== */
     function renderQuickWords() {
       quickWordsContainer.innerHTML = '';
-      quickWords.forEach((qw) => {
+      quickWordsContainer.setAttribute('aria-label', ui('quickTitle'));
+      quickWords.forEach((qw, i) => {
         const btn = document.createElement('button');
-        btn.className = 'gaze-target relative overflow-hidden px-3.5 py-1.5 rounded-xl border font-black text-xs sm:text-sm flex items-center gap-1.5 transition shadow-sm';
-        btn.style.backgroundColor = 'var(--bg-main)';
-        btn.style.borderColor = 'var(--border-card)';
-        btn.style.color = 'var(--text-main)';
-
-        btn.innerHTML = `
-          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="var(--accent-glow)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
-          </svg>
-          <span class="text-base">${qw.emoji || '💬'}</span>
-          <span>${qw.text}</span>
-        `;
+        btn.type = 'button';
+        btn.className = 'qbtn gaze-target';
+        btn.style.setProperty('--hue', `var(--${QUICK_HUES[i % QUICK_HUES.length]})`);
+        btn.innerHTML = `<span class="emo" aria-hidden="true">${escapeHtml(qw.emoji || '💬')}</span><span>${escapeHtml(qw.text)}</span>`;
 
         attachDwellListeners(btn, () => {
-          btn.classList.add('pop-anim');
-          setTimeout(() => btn.classList.remove('pop-anim'), 300);
-
           if (currentSentence && !currentSentence.endsWith(' ')) {
             currentSentence += ' ';
           }
           currentSentence += qw.text + ' ';
+          animateNextChip = true;
           updateSentenceUI();
           speakUtterance(qw.speech || qw.text, voicePitch, voiceRate);
-          showBlendBanner(`Talt: <strong>${qw.text}</strong> ${qw.emoji || ''}`);
+          showBlendBanner(`${tr('Talt', 'Spoken')}: <strong>${escapeHtml(qw.text)}</strong> ${escapeHtml(qw.emoji || '')}`);
         });
 
         quickWordsContainer.appendChild(btn);
@@ -1247,66 +1396,50 @@
       quickWordsEditList.innerHTML = '';
       quickWords.forEach((qw, idx) => {
         const row = document.createElement('div');
-        row.className = 'flex items-center justify-between p-2 rounded-xl border text-xs font-bold';
-        row.style.borderColor = 'var(--border-card)';
-        row.style.backgroundColor = 'var(--bg-main)';
+        row.className = 'list-row';
         row.innerHTML = `
-          <div class="flex items-center gap-2">
-            <span class="text-lg">${qw.emoji || '💬'}</span>
-            <span>${qw.text}</span>
-          </div>
-          <button class="delete-qw-btn text-rose-400 hover:text-rose-300 px-2 py-0.5 rounded" data-index="${idx}">
-            ✕ Slet
-          </button>
+          <div class="who"><span style="font-size:22px">${escapeHtml(qw.emoji || '💬')}</span><span>${escapeHtml(qw.text)}</span></div>
+          <button type="button" class="mini-btn del delete-qw-btn" data-index="${idx}">✕ ${tr('Slet', 'Delete')}</button>
         `;
         quickWordsEditList.appendChild(row);
       });
 
-      document.querySelectorAll('.delete-qw-btn').forEach(btn => {
+      quickWordsEditList.querySelectorAll('.delete-qw-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const idx = parseInt(btn.dataset.index, 10);
           quickWords.splice(idx, 1);
-          localStorage.setItem('gaze_quick_words_' + currentLang, JSON.stringify(quickWords));
+          saveQuickWords();
           renderQuickWordsEditList();
           renderQuickWords();
         });
       });
     }
 
-    btnAddQuickWord.addEventListener('click', () => {
+    $('btnAddQuickWord').addEventListener('click', () => {
       const text = newWordInput.value.trim().toUpperCase();
       const emoji = newEmojiInput.value.trim() || '💬';
       if (!text) return;
       quickWords.push({ text, emoji, speech: text });
-      localStorage.setItem('gaze_quick_words_' + currentLang, JSON.stringify(quickWords));
+      saveQuickWords();
       newWordInput.value = '';
       newEmojiInput.value = '';
       renderQuickWordsEditList();
       renderQuickWords();
     });
 
-    btnResetQuickWords.addEventListener('click', () => {
+    $('btnResetQuickWords').addEventListener('click', () => {
       quickWords = currentLang === 'da' ? [...danishDefaultQuickWords] : [...englishDefaultQuickWords];
-      localStorage.setItem('gaze_quick_words_' + currentLang, JSON.stringify(quickWords));
+      saveQuickWords();
       renderQuickWordsEditList();
       renderQuickWords();
     });
 
-    btnEditQuickWords.addEventListener('click', () => {
+    attachDwellListeners(btnEditQuickWords, () => {
       renderQuickWordsEditList();
-      quickWordsModal.classList.remove('hidden');
-      quickWordsModal.classList.add('flex');
+      openModal(quickWordsModal);
     });
-
-    btnCloseQuickWords.addEventListener('click', () => {
-      quickWordsModal.classList.add('hidden');
-      quickWordsModal.classList.remove('flex');
-    });
-
-    btnSaveQuickWords.addEventListener('click', () => {
-      quickWordsModal.classList.add('hidden');
-      quickWordsModal.classList.remove('flex');
-    });
+    $('btnCloseQuickWords').addEventListener('click', () => closeModal(quickWordsModal));
+    $('btnSaveQuickWords').addEventListener('click', () => closeModal(quickWordsModal));
 
     /* =====================================================================
        8. GRID RENDERING (WITH DANISH Æ, Ø, Å)
@@ -1321,61 +1454,50 @@
 
     const danishStarterOrder = ['A', 'E', 'I', 'O', 'U', 'Æ', 'Ø', 'Å'];
 
+    function currentLetterList() {
+      const { phonics } = getActiveDataset();
+      if (currentLayout === 'phonics-order') return danishPhonicsOrder;
+      if (currentLayout === 'starter') return danishStarterOrder;
+      return Object.keys(phonics);
+    }
+
+    // Columns follow the layout and the screen width; the Back key fills the rest of the last row.
+    function layoutGrid() {
+      const count = currentLetterList().length;
+      const w = window.innerWidth;
+      let cols;
+      if (currentLayout === 'starter') cols = w <= 640 ? 3 : 5;
+      else if (w <= 640) cols = 6;
+      else if (w <= 900) cols = count + 1 > 28 ? 8 : 7;
+      else cols = count + 1 > 28 ? 10 : 9;
+      const rem = count % cols;
+      const span = rem === 0 ? cols : cols - rem;
+      gridContainer.style.setProperty('--cols', cols);
+      gridContainer.style.setProperty('--rows', Math.ceil((count + 1) / cols));
+      gridContainer.style.setProperty('--row-min', currentLayout === 'starter' ? '110px' : '');
+      const back = gridContainer.querySelector('.key.del');
+      if (back) back.style.gridColumn = `span ${span}`;
+    }
+
     function renderGrid() {
       gridContainer.innerHTML = '';
+      gridContainer.classList.toggle('starter', currentLayout === 'starter');
+      gridContainer.setAttribute('aria-label', ui('keys'));
       const { phonics } = getActiveDataset();
-      let list = [];
-
-      if (currentLayout === 'phonics-order') {
-        list = danishPhonicsOrder;
-        gridContainer.className = 'flex-1 grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-7 gap-2 sm:gap-2.5';
-      } else if (currentLayout === 'starter') {
-        list = danishStarterOrder;
-        gridContainer.className = 'flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4';
-      } else {
-        list = Object.keys(phonics);
-        gridContainer.className = 'flex-1 grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-7 gap-2 sm:gap-2.5';
-      }
+      const list = currentLetterList();
+      let hueIndex = 0;
 
       list.forEach(letter => {
         const item = phonics[letter] || { sound: letter, ipa: `/${letter.toLowerCase()}/`, word: letter, icon: '🔤' };
-        const card = document.createElement('div');
-        
-        card.className = 'gaze-target relative group flex flex-col items-center justify-center p-2.5 sm:p-3 rounded-2xl border-2 transition-all cursor-pointer shadow-sm select-none hover:border-amber-400';
-        card.style.backgroundColor = 'var(--bg-card)';
-        card.style.borderColor = 'var(--border-card)';
-
-        const size = currentLayout === 'starter' ? 84 : 54;
-        const radius = (size / 2) - 4;
-        const circumference = 2 * Math.PI * radius;
-
+        const isVowel = VOWELS[currentLang].includes(letter);
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'key gaze-target' + (isVowel ? ' vowel' : '');
+        card.style.setProperty('--hue', `var(--${isVowel ? 'sun' : KEY_HUES[hueIndex++ % KEY_HUES.length]})`);
+        card.setAttribute('aria-label', `${letter}, ${item.word}`);
         card.innerHTML = `
-          <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-            <svg width="${size}" height="${size}" class="dwell-ring">
-              <circle
-                class="dwell-ring-circle"
-                stroke="var(--accent)"
-                stroke-width="5"
-                stroke-linecap="round"
-                fill="transparent"
-                r="${radius}"
-                cx="${size/2}"
-                cy="${size/2}"
-                stroke-dasharray="${circumference}"
-                stroke-dashoffset="${circumference}"
-              />
-            </svg>
-          </div>
-
-          <div class="text-2xl sm:text-3xl ${currentLayout === 'starter' ? 'sm:text-5xl' : ''} font-black tracking-tight group-hover:scale-105 transition-transform" style="color: var(--text-main);">
-            ${letter}
-          </div>
-          <div class="flex items-center gap-1 mt-0.5">
-            <span class="text-sm sm:text-base">${item.icon}</span>
-            <span class="text-[10px] sm:text-[11px] font-bold font-mono uppercase tracking-wider" style="color: var(--text-muted);">
-              ${voiceMode === 'phonics' ? item.ipa : item.word}
-            </span>
-          </div>
+          <span class="glyph">${letter}</span>
+          <span class="key-sub"><span class="pic" aria-hidden="true">${item.icon}</span><span class="hint">${voiceMode === 'phonics' ? item.ipa : item.word}</span></span>
         `;
 
         attachDwellListeners(card, () => {
@@ -1384,24 +1506,39 @@
 
         gridContainer.appendChild(card);
       });
+
+      // Back key (Slet) sits at the end of the letters
+      const back = document.createElement('button');
+      back.type = 'button';
+      back.className = 'key del gaze-target';
+      back.style.setProperty('--hue', 'var(--ink-soft)');
+      back.innerHTML = `${BACK_ICON}<span id="btnBackLabel">${ui('back')}</span>`;
+      attachDwellListeners(back, () => {
+        if (currentSentence.length > 0) {
+          currentSentence = currentSentence.slice(0, -1);
+          updateSentenceUI();
+          speakUtterance(currentLang === 'da' ? "slet" : "back", voicePitch, 1.1);
+        }
+      });
+      gridContainer.appendChild(back);
+
+      layoutGrid();
     }
 
     function handleLetterSelection(letter, element) {
-      element.classList.add('pop-anim');
-      setTimeout(() => element.classList.remove('pop-anim'), 300);
-
       const { phonics, blends } = getActiveDataset();
       const currentWord = getCurrentWord();
       const previousLetter = currentWord.slice(-1);
       const prospectivePair = previousLetter + letter;
 
+      animateNextLetter = true;
       if (autoBlendEnabled && voiceMode === 'phonics' && blends[prospectivePair]) {
         const blend = blends[prospectivePair];
         currentSentence += letter;
         updateSentenceUI();
 
         playSound(prospectivePair, blend.spoken, voicePitch + 0.15, 0.8);
-        showBlendBanner(`✨ ${currentLang === 'da' ? 'Lydsammenfald' : 'Blend'}: <strong>${previousLetter} + ${letter}</strong> smelter sammen til <strong>${blend.ipa}</strong> (som i <em>${blend.sample}</em>) ${blend.icon}`);
+        showBlendBanner(`✨ ${currentLang === 'da' ? 'Lydsammenfald' : 'Blend'}: <strong>${previousLetter} + ${letter}</strong> ${tr('smelter sammen til', 'blends into')} <strong>${blend.ipa}</strong> (${tr('som i', 'as in')} <em>${blend.sample}</em>) ${blend.icon}`);
       } else {
         currentSentence += letter;
         updateSentenceUI();
@@ -1418,72 +1555,59 @@
        9. SPACEBAR, SENTENCE & PREDICTION LOGIC
        ===================================================================== */
     attachDwellListeners(btnSpacebar, () => {
-      btnSpacebar.classList.add('pop-anim');
-      setTimeout(() => btnSpacebar.classList.remove('pop-anim'), 300);
-
       if (currentSentence.length > 0 && !currentSentence.endsWith(' ')) {
         currentSentence += ' ';
+        animateNextChip = true;
         updateSentenceUI();
         speakUtterance(currentLang === 'da' ? "mellemrum" : "space", voicePitch, 1.1);
       }
     });
 
+    function emojiForWord(w) {
+      const { words } = getActiveDataset();
+      if (words[w]) return words[w].icon;
+      const qw = quickWords.find(q => q.text === w);
+      return qw ? qw.emoji : '';
+    }
+
     function updateSentenceUI() {
-      if (!currentSentence) {
-        wordDisplay.innerHTML = `<span class="text-slate-500 text-sm sm:text-base font-normal tracking-normal italic">${
-          currentLang === 'da' ? 'Kig på bogstaver eller kerneord for at tale...' : 'Hover mouse over letters or quick words to speak...'
-        }</span>`;
-        wordEmoji.textContent = '💬';
-        phoneticSoundList.textContent = currentLang === 'da' ? 'Ingen' : 'None';
-        predictionsList.innerHTML = `<span class="text-xs italic" style="color: var(--text-muted);">${
-          currentLang === 'da' ? 'Skriv bogstaver for at se forslag her' : 'Type letters to see word predictions here'
-        }</span>`;
-        return;
-      }
+      const parts = currentSentence.split(' ');
+      const activeWord = parts[parts.length - 1] || '';
+      const finished = parts.slice(0, -1).filter(Boolean);
 
-      wordDisplay.innerHTML = '';
-      const words = currentSentence.split(' ');
-      words.forEach((w, wIdx) => {
-        const wordSpan = document.createElement('span');
-        wordSpan.className = 'inline-flex items-center';
-
-        const segments = segmentWordIntoPhonemes(w);
-        segments.forEach(s => {
-          const letterSpan = document.createElement('span');
-          letterSpan.textContent = s.text;
-          if (s.isBlend) {
-            letterSpan.className = 'px-1 rounded bg-purple-500/25 border border-purple-400 text-purple-300';
-            letterSpan.title = `Lyd ${s.data.ipa}`;
-          } else {
-            letterSpan.className = 'px-0.5';
-          }
-          wordSpan.appendChild(letterSpan);
-        });
-
-        wordDisplay.appendChild(wordSpan);
-
-        if (wIdx < words.length - 1) {
-          const spaceSpan = document.createElement('span');
-          spaceSpan.innerHTML = '&nbsp;';
-          wordDisplay.appendChild(spaceSpan);
-        }
-      });
-
-      const { words: activeWordsDb } = getActiveDataset();
-      const activeWord = getCurrentWord();
-      if (activeWord) {
-        const segments = segmentWordIntoPhonemes(activeWord);
-        phoneticSoundList.innerHTML = segments.map(s => s.data.ipa).join(' + ');
-
-        if (activeWordsDb[activeWord]) {
-          wordEmoji.textContent = activeWordsDb[activeWord].icon;
-        } else {
-          wordEmoji.textContent = '🔤';
-        }
+      // Finished words go into the sentence bar
+      if (!finished.length) {
+        sentenceWords.innerHTML = `<span class="sentence-empty">${ui('emptySentence')}</span>`;
       } else {
-        phoneticSoundList.textContent = currentLang === 'da' ? 'Ingen' : 'None';
-        wordEmoji.textContent = '💬';
+        sentenceWords.innerHTML = finished.map((w, i) => {
+          const emo = emojiForWord(w);
+          const isNew = animateNextChip && i === finished.length - 1;
+          return `<span class="wchip${isNew ? ' new' : ''}">${emo ? `<span class="emo" aria-hidden="true">${escapeHtml(emo)}</span>` : ''}${escapeHtml(w)}</span>`;
+        }).join('');
       }
+      animateNextChip = false;
+
+      // The word being spelled is shown big, with blends highlighted
+      const { words: activeWordsDb } = getActiveDataset();
+      if (!activeWord) {
+        wordDisplay.innerHTML = `<span class="word-empty">${ui('emptyWord')}</span><span class="caret"></span>`;
+        wordEmoji.textContent = '💬';
+        phoneticSoundList.textContent = ui('none');
+      } else {
+        const segments = segmentWordIntoPhonemes(activeWord);
+        let pos = 0;
+        wordDisplay.innerHTML = segments.map((s, si) => {
+          const chars = [...s.text].map(c => {
+            const isNew = animateNextLetter && pos === activeWord.length - 1;
+            pos++;
+            return `<span class="ch${isNew ? ' new' : ''}">${escapeHtml(c)}</span>`;
+          }).join('');
+          return `<span class="${s.isBlend ? 'pair' : 'seg1'}" data-seg="${si}"${s.isBlend ? ` title="Lyd ${s.data.ipa}"` : ''}>${chars}</span>`;
+        }).join('') + '<span class="caret"></span>';
+        phoneticSoundList.textContent = segments.map(s => s.data.ipa).join(' + ');
+        wordEmoji.textContent = activeWordsDb[activeWord] ? activeWordsDb[activeWord].icon : '🔤';
+      }
+      animateNextLetter = false;
 
       renderPredictions();
     }
@@ -1493,41 +1617,29 @@
       const { words: activeWordsDb } = getActiveDataset();
       const activeWord = getCurrentWord().toUpperCase();
       if (!activeWord) {
-        predictionsList.innerHTML = `<span class="text-xs italic" style="color: var(--text-muted);">${
-          currentLang === 'da' ? 'Skriv bogstaver for at se forslag her' : 'Type letters to see predictions here'
-        }</span>`;
+        predictionsList.innerHTML = `<span class="ideas-none">${ui('predEmpty')}</span>`;
         return;
       }
 
       const matches = Object.keys(activeWordsDb).filter(w => w.startsWith(activeWord) && w !== activeWord);
 
       if (matches.length === 0) {
-        predictionsList.innerHTML = `<span class="text-xs italic" style="color: var(--text-muted);">${
-          currentLang === 'da' ? 'Søger efter ordforslag...' : 'Looking for matching words...'
-        }</span>`;
+        predictionsList.innerHTML = `<span class="ideas-none">${ui('predNone')}</span>`;
         return;
       }
 
       matches.slice(0, 5).forEach(word => {
         const item = activeWordsDb[word];
         const chip = document.createElement('button');
-        chip.className = 'gaze-target relative overflow-hidden px-3 py-1.5 rounded-xl border text-xs font-black flex items-center gap-1.5 transition shadow-sm';
-        chip.style.backgroundColor = 'rgba(168, 85, 247, 0.18)';
-        chip.style.borderColor = 'var(--highlight-blend)';
-        chip.style.color = 'var(--text-main)';
-
-        chip.innerHTML = `
-          <svg class="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <rect class="dwell-rect" x="0" y="0" width="100" height="100" fill="var(--accent-glow)" style="transform-origin: left; transform: scaleX(0); transition: transform linear;"></rect>
-          </svg>
-          <span class="text-sm">${item.icon}</span>
-          <span>${word}</span>
-        `;
+        chip.type = 'button';
+        chip.className = 'idea gaze-target';
+        chip.innerHTML = `<span aria-hidden="true">${item.icon}</span><span><b>${escapeHtml(word.slice(0, activeWord.length))}</b>${escapeHtml(word.slice(activeWord.length))}</span>`;
 
         attachDwellListeners(chip, () => {
           const words = currentSentence.split(' ');
           words[words.length - 1] = word;
           currentSentence = words.join(' ') + ' ';
+          animateNextChip = true;
           updateSentenceUI();
           speakUtterance(word, voicePitch, voiceRate);
           showBlendBanner(`${currentLang === 'da' ? 'Valgt ord' : 'Word selected'}: <strong>${word}</strong> ${item.icon}`);
@@ -1544,19 +1656,25 @@
       soundOutWord();
     });
 
+    // Read the current word out loud and move it into the sentence
+    attachDwellListeners(btnReadWord, () => {
+      const word = getCurrentWord();
+      if (!word) {
+        speakUtterance(currentLang === 'da' ? "Vælg bogstaver først!" : "Pick letters first!");
+        return;
+      }
+      currentSentence += ' ';
+      animateNextChip = true;
+      updateSentenceUI();
+      speakUtterance(word.toLowerCase(), voicePitch, voiceRate);
+      showBlendBanner(`🔊 <strong>${escapeHtml(word)}</strong> ${escapeHtml(emojiForWord(word))}`);
+    });
+
     attachDwellListeners(btnSpeakWord, () => {
       if (currentSentence.trim()) {
         speakUtterance(currentSentence.trim(), voicePitch, voiceRate);
       } else {
         speakUtterance(currentLang === 'da' ? "Vælg ord eller bogstaver først" : "Pick words or letters first");
-      }
-    });
-
-    attachDwellListeners(btnBackspace, () => {
-      if (currentSentence.length > 0) {
-        currentSentence = currentSentence.slice(0, -1);
-        updateSentenceUI();
-        speakUtterance(currentLang === 'da' ? "slet" : "back", voicePitch, 1.1);
       }
     });
 
@@ -1568,116 +1686,88 @@
       }
     });
 
-    attachDwellListeners(btnVoiceMode, () => {
-      toggleVoiceMode();
+    [btnModeLetter, btnModePhonics].forEach(btn => {
+      attachDwellListeners(btn, () => {
+        if (btn.dataset.mode !== voiceMode) toggleVoiceMode();
+      });
     });
 
     attachDwellListeners(btnOpenSettings, () => {
-      settingsModal.classList.remove('hidden');
-      settingsModal.classList.add('flex');
+      openModal(settingsModal);
     });
 
     function toggleVoiceMode() {
-      if (voiceMode === 'phonics') {
-        voiceMode = 'letter';
-        voiceModeIcon.textContent = '🔤';
-        voiceModeLabel.textContent = currentLang === 'da' ? 'Bogstavnavn ("A")' : 'Letter Names ("A")';
-        btnVoiceMode.style.color = '#38bdf8';
-      } else {
-        voiceMode = 'phonics';
-        voiceModeIcon.textContent = '🗣️';
-        voiceModeLabel.textContent = currentLang === 'da' ? 'Bogstavlyd (/æ/)' : 'Phonics (/æ/)';
-        btnVoiceMode.style.color = 'var(--accent)';
-      }
+      voiceMode = voiceMode === 'phonics' ? 'letter' : 'phonics';
+      applyVoiceModeUI();
       renderGrid();
+      updateSentenceUI();
+    }
+
+    function applyVoiceModeUI() {
+      btnModeLetter.setAttribute('aria-pressed', String(voiceMode === 'letter'));
+      btnModePhonics.setAttribute('aria-pressed', String(voiceMode === 'phonics'));
+      document.body.classList.toggle('mode-phonics', voiceMode === 'phonics');
+    }
+
+    function applyLanguageLabels() {
+      document.documentElement.lang = currentLang;
+      $('langFlag').innerHTML = FLAGS[currentLang];
+      $('sentenceLabel').textContent = ui('sentence');
+      $('phonemeLabel').textContent = ui('phonemes');
+      $('btnSoundOutLabel').textContent = ui('soundOut');
+      $('btnSpeakAllLabel').textContent = ui('speakAll');
+      $('btnReadWordLabel').textContent = ui('readWord');
+      $('btnClearLabel').textContent = ui('clear');
+      $('restZoneTitle').textContent = ui('restTitle');
+      $('restZoneDesc').textContent = ui('restDesc');
+      restStatusBadge.textContent = isRestingEyes ? ui('restBadgeOn') : ui('restBadge');
+      $('predictionsLabel').textContent = ui('predictions');
+      $('settingsBtnLabel').textContent = ui('settings');
+      $('editQuickWordsLabel').textContent = ui('editQuick');
+      btnEditQuickWords.title = ui('editQuick');
+      btnEditQuickWords.setAttribute('aria-label', ui('editQuick'));
+      $('spacebarLabel').textContent = ui('spacebar');
+      btnModeLetter.title = currentLang === 'da' ? 'Bogstavnavn ("A")' : 'Letter Names ("A")';
+      btnModePhonics.title = currentLang === 'da' ? 'Bogstavlyd (/æ/)' : 'Phonics (/æ/)';
     }
 
     // Language Change Handler
     langSelect.addEventListener('change', (e) => {
       currentLang = e.target.value;
-      quickWords = JSON.parse(localStorage.getItem('gaze_quick_words_' + currentLang) || 'null') || 
-        (currentLang === 'da' ? danishDefaultQuickWords : englishDefaultQuickWords);
-
-      if (currentLang === 'da') {
-        headerTitle.innerHTML = 'GazeVoice AAC • Dansk Phonics';
-        headerSubtitle.textContent = 'Musen simulerer øjenblik • Dwell-udvælgelse • Danske bogstavlyde og sammensmeltninger';
-        spacebarLabel.textContent = 'MELLEMRUM (Nyt Ord i Sætning)';
-        voiceModeLabel.textContent = voiceMode === 'phonics' ? 'Bogstavlyd (/æ/)' : 'Bogstavnavn ("A")';
-        document.getElementById('quickWordsTitle').innerHTML = '<span>⚡</span> Kerneord';
-        document.getElementById('editQuickWordsLabel').textContent = 'Rediger Kerneord';
-        document.getElementById('sentenceLabel').textContent = 'Sætning';
-        document.getElementById('phonemeLabel').textContent = 'Bogstavlyde:';
-        document.getElementById('btnSoundOutLabel').textContent = 'Lydord';
-        document.getElementById('btnSpeakAllLabel').textContent = 'Sig Alt';
-        document.getElementById('btnBackLabel').textContent = 'Slet';
-        document.getElementById('btnClearLabel').textContent = 'Ryd';
-        document.getElementById('restZoneTitle').textContent = 'Hvile- & Tænkezone';
-        document.getElementById('restZoneDesc').textContent = 'Placer øjenblikket her for at hvile øjnene, tænke eller lytte uden at aktivere knapper.';
-        document.getElementById('predictionsLabel').textContent = 'Ordforslag:';
-        document.getElementById('settingsBtnLabel').textContent = 'Indstillinger';
-      } else {
-        headerTitle.innerHTML = 'GazeVoice AAC • English Phonics';
-        headerSubtitle.textContent = 'Mouse simulates eye-gaze • Dwell selection • Sound blending active';
-        spacebarLabel.textContent = 'SPACEBAR (Add Space to Sentence)';
-        voiceModeLabel.textContent = voiceMode === 'phonics' ? 'Phonics (/æ/)' : 'Letter Names ("A")';
-        document.getElementById('quickWordsTitle').innerHTML = '<span>⚡</span> Quick Words';
-        document.getElementById('editQuickWordsLabel').textContent = 'Edit Quick Words';
-        document.getElementById('sentenceLabel').textContent = 'Sentence';
-        document.getElementById('phonemeLabel').textContent = 'Current Phonemes:';
-        document.getElementById('btnSoundOutLabel').textContent = 'Flow Sounds';
-        document.getElementById('btnSpeakAllLabel').textContent = 'Speak All';
-        document.getElementById('btnBackLabel').textContent = 'Back';
-        document.getElementById('btnClearLabel').textContent = 'Clear';
-        document.getElementById('restZoneTitle').textContent = 'Eye Rest & Thinking Zone';
-        document.getElementById('restZoneDesc').textContent = 'Park your gaze here to rest your eyes, think, or read safely without clicks.';
-        document.getElementById('predictionsLabel').textContent = 'Word Suggestions:';
-        document.getElementById('settingsBtnLabel').textContent = 'Settings';
-      }
-
+      quickWords = loadQuickWords(currentLang);
+      applyLanguageLabels();
       renderQuickWords();
       renderGrid();
       updateSentenceUI();
     });
 
-    btnCloseSettings.addEventListener('click', () => {
-      settingsModal.classList.add('hidden');
-      settingsModal.classList.remove('flex');
-    });
-
-    btnSaveSettings.addEventListener('click', () => {
-      settingsModal.classList.add('hidden');
-      settingsModal.classList.remove('flex');
-    });
+    $('btnCloseSettings').addEventListener('click', () => closeModal(settingsModal));
+    $('btnSaveSettings').addEventListener('click', () => closeModal(settingsModal));
 
     // Record Own Sounds modal
-    const recordModal = document.getElementById('recordModal');
-
     function openRecordModal() {
       getAudioCtx();
-      document.getElementById('recordModalTitle').textContent = tr('Optag egne lyde', 'Record your own sounds');
-      document.getElementById('recordModalDesc').textContent = tr(
+      $('recordModalTitle').textContent = tr('Optag egne lyde', 'Record your own sounds');
+      $('recordModalDesc').textContent = tr(
         'Tryk ● Optag, sig den rene lyd (f.eks. "jjj" uden vokal), og tryk ■ Stop. Optagelsen stopper selv efter 3 sekunder. Stilhed før og efter fjernes automatisk. Lyde uden optagelse bruger computerstemmen. Optagelserne gemmes kun i denne browser.',
         'Press ● Record, say the pure sound (e.g. "jjj" with no vowel), then press ■ Stop. Recording stops by itself after 3 seconds. Silence before and after is trimmed automatically. Sounds without a recording use the computer voice. Recordings are saved in this browser only.'
       );
-      document.getElementById('btnDoneRecord').textContent = tr('Færdig', 'Done');
+      $('btnDoneRecord').textContent = tr('Færdig', 'Done');
       renderRecordList();
-      settingsModal.classList.add('hidden');
-      settingsModal.classList.remove('flex');
-      recordModal.classList.remove('hidden');
-      recordModal.classList.add('flex');
+      closeModal(settingsModal);
+      openModal(recordModal);
     }
 
     function closeRecordModal() {
       stopRecording();
-      recordModal.classList.add('hidden');
-      recordModal.classList.remove('flex');
+      closeModal(recordModal);
     }
 
-    document.getElementById('btnOpenRecord').addEventListener('click', openRecordModal);
-    document.getElementById('btnCloseRecord').addEventListener('click', closeRecordModal);
-    document.getElementById('btnDoneRecord').addEventListener('click', closeRecordModal);
+    $('btnOpenRecord').addEventListener('click', openRecordModal);
+    $('btnCloseRecord').addEventListener('click', closeRecordModal);
+    $('btnDoneRecord').addEventListener('click', closeRecordModal);
 
-    document.getElementById('recordList').addEventListener('click', (e) => {
+    $('recordList').addEventListener('click', (e) => {
       const btn = e.target.closest('button[data-action]');
       if (!btn || btn.disabled) return;
       const soundKey = btn.dataset.key;
@@ -1696,12 +1786,36 @@
       }
     });
 
+    // Close dialogs by clicking the dark background or pressing Escape
+    [quickWordsModal, settingsModal].forEach(m => m.addEventListener('click', (e) => { if (e.target === m) closeModal(m); }));
+    recordModal.addEventListener('click', (e) => { if (e.target === recordModal) closeRecordModal(); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      if (!recordModal.hidden) closeRecordModal();
+      [quickWordsModal, settingsModal].forEach(closeModal);
+    });
+
+    const LAYOUT_HINTS = {
+      'alphabet': 'Alfabetisk rækkefølge med Æ, Ø, Å.',
+      'phonics-order': 'Lydrækkefølge: de mest brugte lyde først (S, A, T, O, M, R ...).',
+      'starter': 'Kun vokaler med store mål til at begynde med.'
+    };
     document.querySelectorAll('.layout-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('border-amber-400', 'bg-amber-500/20'));
-        btn.classList.add('border-amber-400', 'bg-amber-500/20');
+        document.querySelectorAll('.layout-btn').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
         currentLayout = btn.dataset.layout;
+        $('layoutSettingHint').textContent = LAYOUT_HINTS[currentLayout];
         renderGrid();
+      });
+    });
+
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.theme-btn').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+        document.body.className = document.body.className.replace(/theme-[a-z-]+/g, '').trim();
+        document.body.classList.add(btn.dataset.theme);
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#11142C');
       });
     });
 
@@ -1709,22 +1823,20 @@
       dwellDuration = parseInt(e.target.value, 10);
     });
 
-    themeSelect.addEventListener('change', (e) => {
-      document.body.className = document.body.className.replace(/theme-[a-z-]+/g, '');
-      if (e.target.value !== 'theme-default') {
-        document.body.classList.add(e.target.value);
-      }
-    });
-
-    pitchSlider.addEventListener('input', (e) => { voicePitch = parseFloat(e.target.value); });
-    rateSlider.addEventListener('input', (e) => { voiceRate = parseFloat(e.target.value); });
+    pitchSlider.addEventListener('input', (e) => { voicePitch = parseFloat(e.target.value); $('pitchVal').textContent = voicePitch.toFixed(2); });
+    rateSlider.addEventListener('input', (e) => { voiceRate = parseFloat(e.target.value); $('rateVal').textContent = voiceRate.toFixed(2); });
     toggleBlending.addEventListener('change', (e) => { autoBlendEnabled = e.target.checked; });
+
+    let resizeFrame = 0;
+    window.addEventListener('resize', () => { cancelAnimationFrame(resizeFrame); resizeFrame = requestAnimationFrame(layoutGrid); });
 
     if ('speechSynthesis' in window) {
       window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
     }
 
     // Init
+    applyLanguageLabels();
+    applyVoiceModeUI();
     renderQuickWords();
     renderGrid();
     updateSentenceUI();

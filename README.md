@@ -61,6 +61,8 @@ Modern operating systems have built-in Danish text-to-speech. To get the highest
 4. **⚡ Pinned Customizable Quick Words:** Dwell on any quick word to speak it instantly. Teachers can customize the list with the **"Rediger Kerneord"** button.
 5. **High-Contrast Themes:** Dark Navy, High Contrast Yellow/Black (CVI standard), Crisp Light, and Sensory Calm Mint.
 6. **Instant Language Switcher:** Switch between 🇩🇰 Dansk and 🇬🇧 English in real time via the top bar.
+7. **🔊 Read Word Out Loud (*Læs ordet højt*):** Speaks the word being spelled and moves it into the sentence bar.
+8. **Works Without Outside Servers:** Fonts and styles are part of the app, so it looks the same and works fully offline on every network.
 
 ---
 
