@@ -12,9 +12,8 @@ The prototype now natively supports **Dansk (Danish)** alongside English:
 
 1. **Full 29-Letter Danish Alphabet:** Includes the three Danish vowels **Æ**, **Ø**, and **Å**.
 2. **Danish Phonics Sounds (*Bogstavlyde*):**
-   * Uses **pure Danish phonemes** (*rene bogstavlyde*) with **zero trailing "u" sounds**:
-     * Stops/plosives (**B**, **D**, **G**, **K**, **P**, **T**) are crisp and clipped without any English-style "uh" / "u" suffix.
-     * Continuants (**S**, **F**, **M**, **N**, **L**, **R**, **V**) produce pure sibilant, hum, and fricative sounds.
+   * **Default (computer voice):** browser speech engines spell out vowel-less text with letter names (`j` → "jod", `ss` → "æs æs"). To avoid that, each consonant is spoken as a short syllable with "ø" (J → "jø", S → "sø", M → "mø"). "ø" is used because "be", "de", "pe" etc. are the Danish letter *names*. The strings live in `danishPhonics` / `danishBlends` in `index.html` and are easy to tweak.
+   * **🎙️ Record your own sounds (*Optag egne lyde*):** for true phonemes with no vowel at all, open **Indstillinger → Optag lyde** and record each sound with the microphone (max 3 s, silence is trimmed automatically). A recording replaces the computer voice for that letter or blend, including in *Lydord*. Recordings are stored in the browser (IndexedDB) on that device only. Recording requires `https://` (e.g. GitHub Pages) or a local file opened in Chrome/Edge.
      * **A**: /æ/ as in *Abe* 🐒
      * **Æ**: /ɛː/ as in *Æble* 🍎
      * **Ø**: /øː/ as in *Øje* 👁️

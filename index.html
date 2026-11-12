@@ -407,6 +407,16 @@
           </div>
           <input type="checkbox" id="toggleBlending" checked class="w-5 h-5 accent-purple-500 cursor-pointer">
         </div>
+
+        <div class="flex items-center justify-between gap-3 p-3 rounded-xl border" style="border-color: var(--border-card); background-color: var(--bg-main);">
+          <div>
+            <div class="font-bold" id="recordSettingTitle">Optag egne lyde</div>
+            <div class="text-[11px]" style="color: var(--text-muted);" id="recordSettingDesc">Optag rene bogstavlyde (f.eks. /j/) med mikrofonen. Optagelser bruges i stedet for computerstemmen.</div>
+          </div>
+          <button id="btnOpenRecord" class="px-3 py-2 rounded-xl font-bold text-white bg-rose-600 hover:bg-rose-500 transition text-xs whitespace-nowrap">
+            🎙️ <span id="btnOpenRecordLabel">Optag lyde</span>
+          </button>
+        </div>
       </div>
 
       <div class="pt-2 flex justify-end">
@@ -417,37 +427,68 @@
     </div>
   </div>
 
+  <!-- Record Own Sounds Modal -->
+  <div id="recordModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="max-w-2xl w-full max-h-[90vh] rounded-2xl p-6 border shadow-2xl flex flex-col gap-4" style="background-color: var(--bg-card); border-color: var(--border-card); color: var(--text-main);">
+      <div class="flex items-center justify-between border-b pb-3" style="border-color: var(--border-card);">
+        <h2 class="text-lg font-black flex items-center gap-2">
+          <span>🎙️</span> <span id="recordModalTitle">Optag egne lyde</span>
+        </h2>
+        <button id="btnCloseRecord" class="text-xl font-bold px-2.5 py-1 rounded-lg hover:bg-white/10">&times;</button>
+      </div>
+
+      <p id="recordModalDesc" class="text-xs" style="color: var(--text-muted);"></p>
+
+      <div id="recordList" class="flex flex-col gap-1.5 overflow-y-auto pr-1 min-h-0"></div>
+
+      <div class="pt-2 flex justify-end border-t" style="border-color: var(--border-card);">
+        <button id="btnDoneRecord" class="px-5 py-2 rounded-xl font-bold text-white bg-amber-500 hover:bg-amber-600 transition text-sm">
+          Færdig
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     /* =====================================================================
        1. MULTI-LANGUAGE DICTIONARIES (DANISH 🇩🇰 & ENGLISH 🇬🇧)
        ===================================================================== */
+    /*
+      `sound` is the text sent to the browser's speech engine (Web Speech API).
+      The engine treats vowel-less strings like "j" or "ss" as abbreviations and
+      spells them out with letter names ("jod", "æs æs"). So every consonant is
+      paired with a short "ø" to make a pronounceable syllable (J -> "jø").
+      "ø" is used instead of "e" because "be", "de", "pe", "te", "ve", "ge" are
+      the Danish letter NAMES. For a pure sound with no vowel, record your own
+      in Settings -> "Optag egne lyde"; recordings always win over this text.
+    */
     const danishPhonics = {
       'A': { sound: 'a', ipa: '/æ/', word: 'Abe', icon: '🐒' },
-      'B': { sound: 'b', ipa: '/b/', word: 'Bold', icon: '⚽' },
-      'C': { sound: 'ss', ipa: '/s/', word: 'Cykel', icon: '🚲' },
-      'D': { sound: 'd', ipa: '/d/', word: 'Delfin', icon: '🐬' },
+      'B': { sound: 'bø', ipa: '/b/', word: 'Bold', icon: '⚽' },
+      'C': { sound: 'sø', ipa: '/s/', word: 'Cykel', icon: '🚲' },
+      'D': { sound: 'dø', ipa: '/d/', word: 'Delfin', icon: '🐬' },
       'E': { sound: 'e', ipa: '/e/', word: 'Elefant', icon: '🐘' },
-      'F': { sound: 'ff', ipa: '/f/', word: 'Fisk', icon: '🐟' },
-      'G': { sound: 'g', ipa: '/ɡ/', word: 'Gris', icon: '🐷' },
-      'H': { sound: 'h', ipa: '/h/', word: 'Hest', icon: '🐴' },
+      'F': { sound: 'fø', ipa: '/f/', word: 'Fisk', icon: '🐟' },
+      'G': { sound: 'gø', ipa: '/ɡ/', word: 'Gris', icon: '🐷' },
+      'H': { sound: 'hø', ipa: '/h/', word: 'Hest', icon: '🐴' },
       'I': { sound: 'i', ipa: '/i/', word: 'Is', icon: '🍦' },
-      'J': { sound: 'j', ipa: '/j/', word: 'Jordbær', icon: '🍓' },
-      'K': { sound: 'k', ipa: '/k/', word: 'Kat', icon: '🐱' },
-      'L': { sound: 'll', ipa: '/l/', word: 'Løve', icon: '🦁' },
-      'M': { sound: 'mm', ipa: '/m/', word: 'Mus', icon: '🐭' },
-      'N': { sound: 'nn', ipa: '/n/', word: 'Næsehorn', icon: '🪺' },
+      'J': { sound: 'jø', ipa: '/j/', word: 'Jordbær', icon: '🍓' },
+      'K': { sound: 'kø', ipa: '/k/', word: 'Kat', icon: '🐱' },
+      'L': { sound: 'lø', ipa: '/l/', word: 'Løve', icon: '🦁' },
+      'M': { sound: 'mø', ipa: '/m/', word: 'Mus', icon: '🐭' },
+      'N': { sound: 'nø', ipa: '/n/', word: 'Næsehorn', icon: '🪺' },
       'O': { sound: 'o', ipa: '/o/', word: 'Ost', icon: '🧀' },
-      'P': { sound: 'p', ipa: '/p/', word: 'Pære', icon: '🍐' },
-      'Q': { sound: 'k', ipa: '/k/', word: 'Quiz', icon: '❓' },
-      'R': { sound: 'rr', ipa: '/ʁ/', word: 'Ræv', icon: '🦊' },
-      'S': { sound: 'ss', ipa: '/s/', word: 'Sol', icon: '☀️' },
-      'T': { sound: 't', ipa: '/t/', word: 'Tog', icon: '🚂' },
+      'P': { sound: 'pø', ipa: '/p/', word: 'Pære', icon: '🍐' },
+      'Q': { sound: 'kø', ipa: '/k/', word: 'Quiz', icon: '❓' },
+      'R': { sound: 'rø', ipa: '/ʁ/', word: 'Ræv', icon: '🦊' },
+      'S': { sound: 'sø', ipa: '/s/', word: 'Sol', icon: '☀️' },
+      'T': { sound: 'tø', ipa: '/t/', word: 'Tog', icon: '🚂' },
       'U': { sound: 'u', ipa: '/u/', word: 'Ugle', icon: '🦉' },
-      'V': { sound: 'vv', ipa: '/v/', word: 'Vand', icon: '💧' },
-      'W': { sound: 'vv', ipa: '/v/', word: 'Weekend', icon: '🏖️' },
-      'X': { sound: 'ks', ipa: '/ks/', word: 'Xylofon', icon: '🎵' },
+      'V': { sound: 'vø', ipa: '/v/', word: 'Vand', icon: '💧' },
+      'W': { sound: 'vø', ipa: '/v/', word: 'Weekend', icon: '🏖️' },
+      'X': { sound: 'øks', ipa: '/ks/', word: 'Xylofon', icon: '🎵' },
       'Y': { sound: 'y', ipa: '/y/', word: 'Yoghurt', icon: '🥣' },
-      'Z': { sound: 'ss', ipa: '/s/', word: 'Zebra', icon: '🦓' },
+      'Z': { sound: 'sø', ipa: '/s/', word: 'Zebra', icon: '🦓' },
       // Danish Special Vowels:
       'Æ': { sound: 'æ', ipa: '/ɛː/', word: 'Æble', icon: '🍎' },
       'Ø': { sound: 'ø', ipa: '/øː/', word: 'Øje', icon: '👁️' },
@@ -455,16 +496,16 @@
     };
 
     const danishBlends = {
-      'HV': { spoken: 'v', ipa: '/v/', label: 'Stumt H i HV (/v/)', sample: 'hval, hvad', icon: '🐋' },
-      'HJ': { spoken: 'j', ipa: '/j/', label: 'Stumt H i HJ (/j/)', sample: 'hjul, hjerte', icon: '❤️' },
+      'HV': { spoken: 'vø', ipa: '/v/', label: 'Stumt H i HV (/v/)', sample: 'hval, hvad', icon: '🐋' },
+      'HJ': { spoken: 'jø', ipa: '/j/', label: 'Stumt H i HJ (/j/)', sample: 'hjul, hjerte', icon: '❤️' },
       'EJ': { spoken: 'aj', ipa: '/aɪ/', label: 'EJ (/aɪ/)', sample: 'leg, vej', icon: '🎮' },
       'ØJ': { spoken: 'øj', ipa: '/ʌɪ/', label: 'ØJ (/ʌɪ/)', sample: 'tøj, øje', icon: '👕' },
       'AJ': { spoken: 'aj', ipa: '/aɪ/', label: 'AJ (/aɪ/)', sample: 'kage, maj', icon: '🍰' },
-      'SK': { spoken: 'sk', ipa: '/sɡ̊/', label: 'SK (/sɡ̊/)', sample: 'skib, sko', icon: '🚢' },
-      'ST': { spoken: 'st', ipa: '/sd̥/', label: 'ST (/sd̥/)', sample: 'stol, stor', icon: '🪑' },
-      'SP': { spoken: 'sp', ipa: '/sb̥/', label: 'SP (/sb̥/)', sample: 'spise, spil', icon: '🍽️' },
-      'SJ': { spoken: 'sj', ipa: '/ɕ/', label: 'SJ (/ɕ/)', sample: 'sjov', icon: '🎉' },
-      'NG': { spoken: 'ng', ipa: '/ŋ/', label: 'NG (/ŋ/)', sample: 'ring, sang', icon: '💍' }
+      'SK': { spoken: 'skø', ipa: '/sɡ̊/', label: 'SK (/sɡ̊/)', sample: 'skib, sko', icon: '🚢' },
+      'ST': { spoken: 'stø', ipa: '/sd̥/', label: 'ST (/sd̥/)', sample: 'stol, stor', icon: '🪑' },
+      'SP': { spoken: 'spø', ipa: '/sb̥/', label: 'SP (/sb̥/)', sample: 'spise, spil', icon: '🍽️' },
+      'SJ': { spoken: 'sjø', ipa: '/ɕ/', label: 'SJ (/ɕ/)', sample: 'sjov', icon: '🎉' },
+      'NG': { spoken: 'øng', ipa: '/ŋ/', label: 'NG (/ŋ/)', sample: 'ring, sang', icon: '💍' }
     };
 
     const danishWords = {
@@ -656,6 +697,7 @@
       lastSpokenText = text;
       lastSpokenTime = now;
 
+      stopRecordedPlayback();
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.pitch = pitch;
@@ -675,6 +717,294 @@
       }
 
       window.speechSynthesis.speak(utterance);
+    }
+
+    /* =====================================================================
+       4b. CUSTOM RECORDED SOUNDS (MICROPHONE -> INDEXEDDB -> PLAYBACK)
+       A recording for a letter/blend replaces the speech engine for that
+       sound. Recordings are stored per browser, keyed "<lang>:<letter>".
+       ===================================================================== */
+    const SOUND_DB_NAME = 'gazevoice_sounds';
+    const SOUND_STORE = 'recordings';
+    const MAX_RECORD_MS = 3000;
+    const recordedBuffers = new Map(); // "da:J" -> { buffer, start, duration }
+    let sharedAudioCtx = null;
+    let currentRecordedSource = null;
+    let mediaRecorder = null;
+    let activeRecordingSoundKey = null;
+    let recordStopTimer = null;
+
+    const tr = (da, en) => (currentLang === 'da' ? da : en);
+    const recordingKey = (lang, soundKey) => `${lang}:${soundKey}`;
+
+    function getAudioCtx() {
+      if (!sharedAudioCtx) {
+        sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (sharedAudioCtx.state === 'suspended') {
+        sharedAudioCtx.resume().catch(() => {});
+      }
+      return sharedAudioCtx;
+    }
+
+    // Browsers only allow audio after a real click/keypress, so unlock on the first one.
+    ['pointerdown', 'keydown'].forEach(evt =>
+      window.addEventListener(evt, () => getAudioCtx(), { once: true })
+    );
+
+    function openSoundDb() {
+      return new Promise((resolve, reject) => {
+        if (!('indexedDB' in window)) {
+          reject(new Error('IndexedDB is not available'));
+          return;
+        }
+        const req = indexedDB.open(SOUND_DB_NAME, 1);
+        req.onupgradeneeded = () => req.result.createObjectStore(SOUND_STORE);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function soundDbWrite(fn) {
+      const db = await openSoundDb();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(SOUND_STORE, 'readwrite');
+        fn(tx.objectStore(SOUND_STORE));
+        tx.oncomplete = () => { db.close(); resolve(); };
+        tx.onerror = () => { db.close(); reject(tx.error); };
+      });
+    }
+
+    async function soundDbReadAll() {
+      const db = await openSoundDb();
+      return new Promise((resolve, reject) => {
+        const entries = [];
+        const tx = db.transaction(SOUND_STORE, 'readonly');
+        const cursorReq = tx.objectStore(SOUND_STORE).openCursor();
+        cursorReq.onsuccess = () => {
+          const cursor = cursorReq.result;
+          if (cursor) {
+            entries.push([cursor.key, cursor.value]);
+            cursor.continue();
+          }
+        };
+        tx.oncomplete = () => { db.close(); resolve(entries); };
+        tx.onerror = () => { db.close(); reject(tx.error); };
+      });
+    }
+
+    // Trim silence at the start/end so the sound plays the instant a letter is chosen.
+    function findSoundBounds(buffer) {
+      const data = buffer.getChannelData(0);
+      let peak = 0;
+      for (let i = 0; i < data.length; i++) {
+        const v = Math.abs(data[i]);
+        if (v > peak) peak = v;
+      }
+      const threshold = Math.max(0.01, peak * 0.08);
+      let first = 0;
+      let last = data.length - 1;
+      while (first < data.length && Math.abs(data[first]) < threshold) first++;
+      while (last > first && Math.abs(data[last]) < threshold) last--;
+      if (first >= last) return { start: 0, duration: buffer.duration };
+
+      const pre = Math.floor(0.03 * buffer.sampleRate);
+      const post = Math.floor(0.08 * buffer.sampleRate);
+      const startSample = Math.max(0, first - pre);
+      const endSample = Math.min(data.length, last + post);
+      return {
+        start: startSample / buffer.sampleRate,
+        duration: (endSample - startSample) / buffer.sampleRate
+      };
+    }
+
+    async function cacheRecording(key, blob) {
+      try {
+        const arrayBuf = await blob.arrayBuffer();
+        // An OfflineAudioContext can decode before any user click (no autoplay warning).
+        const decoder = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 1, 44100);
+        const buffer = await decoder.decodeAudioData(arrayBuf);
+        recordedBuffers.set(key, { buffer, ...findSoundBounds(buffer) });
+      } catch (e) {
+        console.warn('Could not decode recording', key, e);
+        recordedBuffers.delete(key);
+      }
+    }
+
+    async function loadRecordings() {
+      recordedBuffers.clear();
+      try {
+        const entries = await soundDbReadAll();
+        for (const [key, blob] of entries) {
+          await cacheRecording(key, blob);
+        }
+      } catch (e) {
+        console.warn('Could not load recorded sounds', e);
+      }
+    }
+
+    function stopRecordedPlayback() {
+      if (currentRecordedSource) {
+        try { currentRecordedSource.stop(); } catch (e) {}
+        currentRecordedSource = null;
+      }
+    }
+
+    function hasRecording(soundKey) {
+      return recordedBuffers.has(recordingKey(currentLang, soundKey));
+    }
+
+    /**
+     * Play the user's recording for `soundKey` if one exists, otherwise speak
+     * `fallbackText` with the speech engine. Returns the approximate playback
+     * length in ms so callers can pace sequences.
+     */
+    function playSound(soundKey, fallbackText, pitch = voicePitch, rate = voiceRate) {
+      const rec = recordedBuffers.get(recordingKey(currentLang, soundKey));
+      if (!rec) {
+        speakUtterance(fallbackText, pitch, rate);
+        return 650;
+      }
+
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      stopRecordedPlayback();
+      lastSpokenText = '';
+
+      const ctx = getAudioCtx();
+      const src = ctx.createBufferSource();
+      src.buffer = rec.buffer;
+      src.connect(ctx.destination);
+      src.onended = () => {
+        if (currentRecordedSource === src) currentRecordedSource = null;
+      };
+      src.start(0, rec.start, rec.duration);
+      currentRecordedSource = src;
+      return rec.duration * 1000;
+    }
+
+    async function startRecording(soundKey) {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+        alert(tr(
+          'Denne browser understøtter ikke optagelse. Prøv Chrome, Edge eller Safari, og åbn appen via https.',
+          'This browser cannot record audio. Try Chrome, Edge or Safari, and open the app over https.'
+        ));
+        return;
+      }
+
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: false, noiseSuppression: true, autoGainControl: true }
+        });
+      } catch (e) {
+        alert(tr(
+          'Mikrofonen kunne ikke åbnes. Giv browseren adgang til mikrofonen og prøv igen.',
+          'Could not open the microphone. Allow microphone access in the browser and try again.'
+        ));
+        return;
+      }
+
+      stopRecordedPlayback();
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+      const chunks = [];
+      const recorder = new MediaRecorder(stream);
+      const lang = currentLang;
+
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunks.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        clearTimeout(recordStopTimer);
+        stream.getTracks().forEach(t => t.stop());
+        mediaRecorder = null;
+        activeRecordingSoundKey = null;
+
+        const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+        const key = recordingKey(lang, soundKey);
+        try {
+          await soundDbWrite(store => store.put(blob, key));
+        } catch (e) {
+          console.warn('Could not save recording', e);
+          alert(tr('Optagelsen kunne ikke gemmes i browseren.', 'The recording could not be saved in this browser.'));
+        }
+        await cacheRecording(key, blob);
+        renderRecordList();
+        if (recordedBuffers.has(key)) playSound(soundKey, '');
+      };
+
+      mediaRecorder = recorder;
+      activeRecordingSoundKey = soundKey;
+      recorder.start();
+      recordStopTimer = setTimeout(stopRecording, MAX_RECORD_MS);
+      renderRecordList();
+    }
+
+    function stopRecording() {
+      clearTimeout(recordStopTimer);
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+    }
+
+    async function deleteRecording(soundKey) {
+      const key = recordingKey(currentLang, soundKey);
+      try {
+        await soundDbWrite(store => store.delete(key));
+      } catch (e) {
+        console.warn('Could not delete recording', e);
+      }
+      recordedBuffers.delete(key);
+      renderRecordList();
+    }
+
+    function renderRecordList() {
+      const recordList = document.getElementById('recordList');
+      if (!recordList) return;
+      const { phonics, blends } = getActiveDataset();
+
+      const rows = [
+        ...Object.keys(phonics).map(k => ({ key: k, ipa: phonics[k].ipa, hint: `${phonics[k].icon} ${phonics[k].word}`, fallback: phonics[k].sound })),
+        ...Object.keys(blends).map(k => ({ key: k, ipa: blends[k].ipa, hint: `${blends[k].icon} ${blends[k].sample}`, fallback: blends[k].spoken }))
+      ];
+
+      recordList.innerHTML = '';
+      rows.forEach(row => {
+        const recorded = hasRecording(row.key);
+        const isRecordingThis = activeRecordingSoundKey === row.key;
+        const busyElsewhere = activeRecordingSoundKey !== null && !isRecordingThis;
+
+        const el = document.createElement('div');
+        el.className = 'flex items-center justify-between gap-2 p-2 rounded-xl border text-xs';
+        el.style.borderColor = isRecordingThis ? '#f43f5e' : 'var(--border-card)';
+        el.style.backgroundColor = 'var(--bg-main)';
+        el.innerHTML = `
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="text-xl font-black w-10 text-center">${row.key}</span>
+            <span class="font-mono font-bold text-purple-300 w-14">${row.ipa}</span>
+            <span class="truncate" style="color: var(--text-muted);">${row.hint}</span>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${recorded ? 'bg-emerald-500/20 text-emerald-300' : 'bg-slate-500/20'}" style="${recorded ? '' : 'color: var(--text-muted);'}">
+              ${recorded ? tr('✅ Egen optagelse', '✅ Own recording') : tr('Stemme: "' + row.fallback + '"', 'Voice: "' + row.fallback + '"')}
+            </span>
+            <button data-action="record" data-key="${row.key}" ${busyElsewhere ? 'disabled' : ''}
+              class="px-2.5 py-1 rounded-lg font-bold text-white ${isRecordingThis ? 'bg-rose-500 animate-pulse' : 'bg-rose-600 hover:bg-rose-500'} disabled:opacity-40">
+              ${isRecordingThis ? tr('■ Stop', '■ Stop') : tr('● Optag', '● Record')}
+            </button>
+            <button data-action="play" data-key="${row.key}" data-fallback="${row.fallback}" ${activeRecordingSoundKey ? 'disabled' : ''}
+              class="px-2.5 py-1 rounded-lg font-bold border hover:bg-white/10 disabled:opacity-40" style="border-color: var(--border-card);">
+              ▶
+            </button>
+            <button data-action="delete" data-key="${row.key}" ${recorded && !activeRecordingSoundKey ? '' : 'disabled'}
+              class="px-2 py-1 rounded-lg font-bold text-rose-400 hover:bg-rose-500/10 disabled:opacity-30" title="${tr('Slet optagelse', 'Delete recording')}">
+              ✕
+            </button>
+          </div>
+        `;
+        recordList.appendChild(el);
+      });
     }
 
     function playChime(freq = 520, type = 'sine') {
@@ -729,9 +1059,9 @@
       for (let s of segments) {
         const spoken = s.isBlend ? s.data.spoken : s.data.sound;
         playChime(640, 'triangle');
-        speakUtterance(spoken, voicePitch + 0.1, 0.75);
+        const playedMs = playSound(s.text, spoken, voicePitch + 0.1, 0.75);
         showBlendBanner(`${currentLang === 'da' ? 'Lyder som' : 'Flowing'}: ${s.text} (${s.data.ipa})`);
-        await new Promise(r => setTimeout(r, 650));
+        await new Promise(r => setTimeout(r, Math.max(650, playedMs + 150)));
       }
 
       await new Promise(r => setTimeout(r, 300));
@@ -1060,14 +1390,14 @@
         currentSentence += letter;
         updateSentenceUI();
 
-        speakUtterance(blend.spoken, voicePitch + 0.15, 0.8);
+        playSound(prospectivePair, blend.spoken, voicePitch + 0.15, 0.8);
         showBlendBanner(`✨ ${currentLang === 'da' ? 'Lydsammenfald' : 'Blend'}: <strong>${previousLetter} + ${letter}</strong> smelter sammen til <strong>${blend.ipa}</strong> (som i <em>${blend.sample}</em>) ${blend.icon}`);
       } else {
         currentSentence += letter;
         updateSentenceUI();
 
         if (voiceMode === 'phonics') {
-          speakUtterance(phonics[letter]?.sound || letter, voicePitch, 0.85);
+          playSound(letter, phonics[letter]?.sound || letter, voicePitch, 0.85);
         } else {
           speakUtterance(letter, voicePitch, 0.9);
         }
@@ -1309,6 +1639,53 @@
       settingsModal.classList.remove('flex');
     });
 
+    // Record Own Sounds modal
+    const recordModal = document.getElementById('recordModal');
+
+    function openRecordModal() {
+      getAudioCtx();
+      document.getElementById('recordModalTitle').textContent = tr('Optag egne lyde', 'Record your own sounds');
+      document.getElementById('recordModalDesc').textContent = tr(
+        'Tryk ● Optag, sig den rene lyd (f.eks. "jjj" uden vokal), og tryk ■ Stop. Optagelsen stopper selv efter 3 sekunder. Stilhed før og efter fjernes automatisk. Lyde uden optagelse bruger computerstemmen. Optagelserne gemmes kun i denne browser.',
+        'Press ● Record, say the pure sound (e.g. "jjj" with no vowel), then press ■ Stop. Recording stops by itself after 3 seconds. Silence before and after is trimmed automatically. Sounds without a recording use the computer voice. Recordings are saved in this browser only.'
+      );
+      document.getElementById('btnDoneRecord').textContent = tr('Færdig', 'Done');
+      renderRecordList();
+      settingsModal.classList.add('hidden');
+      settingsModal.classList.remove('flex');
+      recordModal.classList.remove('hidden');
+      recordModal.classList.add('flex');
+    }
+
+    function closeRecordModal() {
+      stopRecording();
+      recordModal.classList.add('hidden');
+      recordModal.classList.remove('flex');
+    }
+
+    document.getElementById('btnOpenRecord').addEventListener('click', openRecordModal);
+    document.getElementById('btnCloseRecord').addEventListener('click', closeRecordModal);
+    document.getElementById('btnDoneRecord').addEventListener('click', closeRecordModal);
+
+    document.getElementById('recordList').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-action]');
+      if (!btn || btn.disabled) return;
+      const soundKey = btn.dataset.key;
+      const action = btn.dataset.action;
+
+      if (action === 'record') {
+        if (activeRecordingSoundKey === soundKey) {
+          stopRecording();
+        } else {
+          startRecording(soundKey);
+        }
+      } else if (action === 'play') {
+        playSound(soundKey, btn.dataset.fallback, voicePitch, 0.85);
+      } else if (action === 'delete') {
+        deleteRecording(soundKey);
+      }
+    });
+
     document.querySelectorAll('.layout-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('border-amber-400', 'bg-amber-500/20'));
@@ -1341,6 +1718,7 @@
     renderQuickWords();
     renderGrid();
     updateSentenceUI();
+    loadRecordings();
   </script>
 </body>
 </html>
