@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GazeVoice — AI Ethics Project Presentation</title>
+<link rel="stylesheet" href="../fonts.css">
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<style>
+  :root{
+    --bg:#0D1026; --surface:#1B1F42; --surface-2:#232852; --line:#323867;
+    --ink:#EEF0FF; --soft:#A9AED8; --dim:#777DAE;
+    --violet:#8C8CFF; --indigo:#5653E0; --berry:#DA69C6;
+    --sun:#FFC83D; --leaf:#3FC383; --aqua:#2BB8E0; --coral:#FF7B6B;
+    --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+    --body:"Andika",Verdana,system-ui,sans-serif;
+    --scale:1;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--ink); font-family:var(--body);
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .stage{width:1280px; height:720px; transform:scale(var(--scale)); transform-origin:center center; position:relative}
+
+  /* ---------- slide shell ---------- */
+  .slide{
+    position:absolute; inset:0; width:1280px; height:720px; display:none;
+    padding:58px 72px 64px; background:var(--bg); overflow:hidden;
+  }
+  .slide.active{display:block}
+  .slide::after{ /* soft brand glow */
+    content:""; position:absolute; width:620px; height:620px; right:-230px; top:-280px; border-radius:50%;
+    background:radial-gradient(circle at center, rgba(140,140,255,.16), rgba(140,140,255,0) 68%); pointer-events:none;
+  }
+  .eyebrow{
+    font-family:var(--display); font-weight:700; font-size:16px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--violet); margin-bottom:14px;
+  }
+  h1{font-family:var(--display); font-weight:800; font-size:62px; line-height:1.04; letter-spacing:-.5px}
+  h2{font-family:var(--display); font-weight:800; font-size:44px; line-height:1.08; letter-spacing:-.4px}
+  .sub{font-size:20px; color:var(--soft); margin-top:12px; line-height:1.45; max-width:1000px}
+  .foot{
+    position:absolute; left:72px; right:72px; bottom:26px; display:flex; align-items:center;
+    justify-content:space-between; font-size:13px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--dim); font-family:var(--display); font-weight:600;
+  }
+  .foot .num{color:var(--soft)}
+  .rule{height:3px; width:88px; border-radius:3px; margin:18px 0 26px;
+    background:linear-gradient(90deg,var(--violet),var(--indigo) 55%,var(--berry))}
+
+  /* ---------- building blocks ---------- */
+  .cards{display:grid; gap:20px; margin-top:6px}
+  .c3{grid-template-columns:repeat(3,1fr)}
+  .c2{grid-template-columns:repeat(2,1fr)}
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:18px;
+    padding:22px 24px; position:relative; overflow:hidden;
+  }
+  .card::before{content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--hue,var(--violet))}
+  .card h3{font-family:var(--display); font-weight:700; font-size:21px; margin-bottom:10px; color:var(--ink)}
+  .card p,.card li{font-size:17px; line-height:1.5; color:var(--soft)}
+  .card ul{list-style:none; display:grid; gap:9px}
+  .card li{padding-left:18px; position:relative}
+  .card li::before{content:""; position:absolute; left:0; top:9px; width:7px; height:7px; border-radius:50%; background:var(--hue,var(--violet))}
+  .tint{background:linear-gradient(180deg,color-mix(in srgb,var(--hue) 13%,var(--surface)),var(--surface))}
+
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:4px}
+  .step{background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:20px 22px}
+  .step .n{font-family:var(--display); font-weight:800; font-size:15px; color:var(--hue,var(--violet)); letter-spacing:.12em}
+  .step h4{font-family:var(--display); font-weight:700; font-size:20px; margin:6px 0 6px}
+  .step p{font-size:16px; color:var(--soft); line-height:1.45}
+
+  .shot{border-radius:16px; border:1px solid var(--line); overflow:hidden; background:var(--surface);
+    box-shadow:0 24px 60px -28px rgba(0,0,0,.85)}
+  .shot img{display:block; width:100%; height:100%; object-fit:cover; object-position:top center}
+
+  .chip{
+    display:inline-flex; align-items:center; gap:8px; font-family:var(--display); font-weight:700;
+    font-size:14px; padding:6px 14px; border-radius:999px; border:1px solid; letter-spacing:.02em;
+  }
+  .chip::before{content:""; width:8px; height:8px; border-radius:50%; background:currentColor}
+  .ok{color:var(--leaf); border-color:color-mix(in srgb,var(--leaf) 45%,transparent); background:color-mix(in srgb,var(--leaf) 13%,transparent)}
+  .warn{color:var(--sun); border-color:color-mix(in srgb,var(--sun) 45%,transparent); background:color-mix(in srgb,var(--sun) 13%,transparent)}
+  .gap{color:var(--coral); border-color:color-mix(in srgb,var(--coral) 45%,transparent); background:color-mix(in srgb,var(--coral) 13%,transparent)}
+
+  table{width:100%; border-collapse:collapse; font-size:16.5px; margin-top:4px}
+  th,td{text-align:left; padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:top}
+  th{font-family:var(--display); font-weight:700; font-size:14px; letter-spacing:.1em; text-transform:uppercase; color:var(--violet)}
+  td{color:var(--soft)} td b{color:var(--ink); font-weight:700}
+  tr:last-child td{border-bottom:none}
+  .mono{font-family:ui-monospace,Menlo,Consolas,monospace; font-size:14.5px; color:var(--ink)}
+
+  .note{
+    margin-top:auto; font-size:16px; color:var(--soft); background:var(--surface-2);
+    border:1px solid var(--line); border-left:4px solid var(--violet);
+    border-radius:0 12px 12px 0; padding:14px 18px; line-height:1.45;
+  }
+  .note b{color:var(--ink)}
+  .body-grid{display:grid; gap:22px; height:calc(100% - 150px)}
+  .split{grid-template-columns:1.05fr .95fr; align-items:start}
+  .split-wide{grid-template-columns:1.25fr .75fr; align-items:start}
+
+  /* ---------- title + closing ---------- */
+  .cover{display:grid; grid-template-columns:1.1fr .9fr; gap:50px; align-items:center; height:100%}
+  .cover h1{font-size:76px; background:linear-gradient(100deg,#fff 10%,var(--violet) 55%,var(--berry));
+    -webkit-background-clip:text; background-clip:text; color:transparent}
+  .tagline{font-family:var(--display); font-weight:600; font-size:27px; color:var(--ink); margin-top:16px; line-height:1.25}
+  .meta{margin-top:30px; display:grid; gap:7px; font-size:18px; color:var(--soft)}
+  .meta b{color:var(--ink)}
+  .cover-art{display:grid; gap:18px; justify-items:center}
+  .cover-art .logo{width:214px; height:214px; border-radius:46px; box-shadow:0 30px 70px -30px rgba(140,140,255,.75)}
+  .linkcard{
+    background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:18px 20px;
+    text-align:center; width:100%;
+  }
+  .linkcard .k{font-family:var(--display); font-weight:700; font-size:15px; color:var(--violet); letter-spacing:.1em; text-transform:uppercase}
+  .linkcard a{display:block; margin-top:8px; color:var(--ink); font-size:15.5px; word-break:break-all; text-decoration:none; border-bottom:1px dotted var(--line)}
+  .qr{width:168px; height:168px; border-radius:14px; background:#fff; padding:10px; display:none}
+  .qr.show{display:block}
+
+  /* ---------- navigation ---------- */
+  .nav{
+    position:fixed; right:18px; top:16px; display:flex; gap:8px; z-index:20; opacity:.25; transition:opacity .2s;
+  }
+  .nav:hover{opacity:1}
+  .nav button{
+    font-family:var(--display); font-weight:700; font-size:15px; color:var(--ink); cursor:pointer;
+    background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:7px 13px;
+  }
+  .nav button:hover{border-color:var(--violet)}
+  .hint{
+    position:fixed; left:50%; transform:translateX(-50%); bottom:14px; font-size:12.5px; color:var(--dim);
+    z-index:20; font-family:var(--display); letter-spacing:.06em; transition:opacity .6s; pointer-events:none;
+  }
+  .hint.gone{opacity:0}
+
+  /* Slides with a full-width table need tighter spacing to stay on one page */
+  .slide.dense .sub{font-size:18px; margin-top:8px}
+  .slide.dense .rule{margin:14px 0 6px}
+  .slide.dense th,.slide.dense td{padding:7.5px 12px; font-size:15.5px}
+  .slide.dense .note{padding:11px 16px; font-size:15px; margin-top:14px}
+
+  /* ---------- print / PDF ---------- */
+  @page{size:1280px 720px; margin:0}
+  @media print{
+    body{display:block; overflow:visible; background:#fff}
+    .stage{width:auto; height:auto; transform:none}
+    .slide{display:block !important; position:relative; break-after:page; page-break-after:always; margin:0}
+    .nav,.hint{display:none !important}
+  }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+
+  <!-- 01 ─────────────────────────────── TITLE -->
+  <section class="slide active">
+    <div class="cover">
+      <div>
+        <div class="eyebrow">AI Ethics · Project Presentation</div>
+        <h1>GazeVoice</h1>
+        <p class="tagline">Stav med øjnene<br>Spell with your eyes.</p>
+        <div class="meta">
+          <div><b>A Danish phonics &amp; AAC prototype</b> proposed for Geelsgårdskolen</div>
+          <div>Antonia · Jonas · Flavia · Antalia</div>
+          <div style="color:var(--dim)">Organisation &rsaquo; Product &rsaquo; Data &rsaquo; Ethics &rsaquo; What comes next</div>
+        </div>
+      </div>
+      <div class="cover-art">
+        <img class="logo" src="../icon-512.png" alt="GazeVoice logo">
+        <img class="qr" id="qr" src="img/qr.png" alt="QR code to open GazeVoice">
+        <div class="linkcard">
+          <div class="k">Try it live</div>
+          <a href="https://aiethicsjonas-cloud.github.io/Ai-aac-phonics-app/">aiethicsjonas-cloud.github.io/Ai-aac-phonics-app</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 ─────────────────────────────── ORGANISATION -->
+  <section class="slide">
+    <div class="eyebrow">01 / Organisation</div>
+    <h2>Geelsgårdskolen</h2>
+    <p class="sub">A specialised public school — the setting that defines every requirement in this project.</p>
+    <div class="rule"></div>
+    <div class="cards c3">
+      <div class="card tint" style="--hue:var(--violet)">
+        <h3>Who they are</h3>
+        <p>A specialised school in Virum, Denmark, run under Den Sociale Virksomhed, Region Hovedstaden.</p>
+      </div>
+      <div class="card tint" style="--hue:var(--aqua)">
+        <h3>Who they support</h3>
+        <p>Children and young people with complex physical, sensory and communication disabilities.</p>
+      </div>
+      <div class="card tint" style="--hue:var(--berry)">
+        <h3>How they work</h3>
+        <p>Teachers, pedagogues and therapists around each student, with individual plans and AAC aids already in daily use.</p>
+      </div>
+    </div>
+    <div class="note" style="margin-top:28px">
+      <b>Why it matters for us:</b> a public school, not a customer. No commercial data use, shared iPads,
+      strict pupil-data rules, and staff who need tools that work without IT support.
+    </div>
+    <div class="foot"><span>GazeVoice · AI Ethics</span><span class="num">02</span></div>
+  </section>
+
+  <!-- 03 ─────────────────────────────── THE NEED -->
+  <section class="slide">
+    <div class="eyebrow">02 / The problem</div>
+    <h2>Why we built GazeVoice</h2>
+    <p class="sub">AAC tools help students <em>request</em> things. Far fewer help them <em>learn to spell</em> — in Danish.</p>
+    <div class="rule"></div>
+    <div class="cards c2" style="gap:20px">
+      <div class="card" style="--hue:var(--coral)">
+        <h3>Gaps we found</h3>
+        <ul>
+          <li>Danish phonics needs <b>Æ, Ø, Å</b>, the uvular <b>R</b>, soft <b>D</b>, and silent-H pairs (<b>hv-, hj-</b>)</li>
+          <li>Browser voices read a lone letter as its <b>name</b> — “jod” instead of the /j/ sound</li>
+          <li>Specialised eye-gaze software is expensive and tied to specific hardware</li>
+        </ul>
+      </div>
+      <div class="card" style="--hue:var(--leaf)">
+        <h3>Our constraints</h3>
+        <ul>
+          <li>Must run on the <b>iPads the school already has</b> — no new hardware</li>
+          <li>Must work <b>offline</b> on classroom Wi-Fi</li>
+          <li>Pupil data must <b>not leave the device</b></li>
+          <li>A teacher must be able to adapt it in under a minute</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note" style="margin-top:26px">
+      <b>Design goal:</b> one web page a teacher can open, install and use the same day — that teaches
+      letter <em>sounds</em>, not letter names.
+    </div>
+    <div class="foot"><span>GazeVoice · AI Ethics</span><span class="num">03</span></div>
+  </section>
+
+  <!-- 04 ─────────────────────────────── THE PRODUCT -->
+  <section class="slide">
+    <div class="eyebrow">03 / The product</div>
+    <h2>What GazeVoice does</h2>
+    <div class="rule" style="margin:14px 0 20px"></div>
+    <div class="body-grid split" style="height:calc(100% - 196px)">
+      <div class="shot" style="height:394px"><img src="img/board.png" alt="The GazeVoice student board in Danish"></div>
+      <div>
+        <div class="cards" style="gap:14px">
+          <div class="card" style="--hue:var(--violet); padding:16px 20px">
+            <h3 style="font-size:19px; margin-bottom:6px">29-letter Danish board</h3>
+            <p style="font-size:16px">Full alphabet with Æ, Ø, Å and the IPA sound on every key. English board included.</p>
+          </div>
+          <div class="card" style="--hue:var(--sun); padding:16px 20px">
+            <h3 style="font-size:19px; margin-bottom:6px">Sounds, not letter names</h3>
+            <p style="font-size:16px">Phoneme-first audio, plus blends like <b>hv-</b> and <b>ej</b>. Teachers can record their own pure sounds.</p>
+          </div>
+          <div class="card" style="--hue:var(--leaf); padding:16px 20px">
+            <h3 style="font-size:19px; margin-bottom:6px">Dwell selection</h3>
+            <p style="font-size:16px">Hold your gaze, pointer or finger on a key; a ring fills and selects. Adjustable 0.5–2.0 s.</p>
+          </div>
+          <div class="card" style="--hue:var(--aqua); padding:16px 20px">
+            <h3 style="font-size:19px; margin-bottom:6px">From letters to speech</h3>
+            <p style="font-size:16px">Word suggestions, pinned core words, and “read it aloud” for the finished word or sentence.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>Live prototype · open source · installable</span><span class="num">04</span></div>
+  </section>
+
+  <!-- 05 ─────────────────────────────── STUDENT JOURNEY -->
+  <section class="slide">
+    <div class="eyebrow">04 / User experience</div>
+    <h2>How a student uses it</h2>
+    <p class="sub">One repeatable loop, with a safe way out at any point.</p>
+    <div class="rule"></div>
+    <div class="steps">
+      <div class="step" style="--hue:var(--violet)"><div class="n">01</div><h4>Pick your name</h4><p>Names used before appear as big buttons — no typing, no password.</p></div>
+      <div class="step" style="--hue:var(--indigo)"><div class="n">02</div><h4>Hold on a letter</h4><p>A ring fills around the key while the student holds their gaze or touch.</p></div>
+      <div class="step" style="--hue:var(--aqua)"><div class="n">03</div><h4>Hear the sound</h4><p>The letter’s phoneme is spoken, so spelling is practised by ear.</p></div>
+      <div class="step" style="--hue:var(--leaf)"><div class="n">04</div><h4>Build the word</h4><p>Suggestions appear after a few letters; core words are one look away.</p></div>
+      <div class="step" style="--hue:var(--sun)"><div class="n">05</div><h4>Read it aloud</h4><p>The word moves into the sentence bar and is spoken in Danish.</p></div>
+      <div class="step" style="--hue:var(--berry)"><div class="n">06</div><h4>Rest or pause</h4><p>A rest band where nothing can be triggered, plus a full pause screen.</p></div>
+    </div>
+    <div class="foot"><span>GazeVoice · AI Ethics</span><span class="num">05</span></div>
+  </section>
+
+  <!-- 06 ─────────────────────────────── ACCESSIBILITY -->
+  <section class="slide">
+    <div class="eyebrow">05 / Accessibility</div>
+    <h2>Designed for the child in front of it</h2>
+    <div class="rule" style="margin:14px 0 20px"></div>
+    <div class="body-grid split-wide" style="height:calc(100% - 196px)">
+      <div class="cards c2" style="gap:14px">
+        <div class="card" style="--hue:var(--leaf); padding:16px 20px">
+          <h3 style="font-size:19px">Motor &amp; fatigue</h3>
+          <ul style="font-size:15.5px">
+            <li>Dwell time 0.5–2.0 s</li>
+            <li>Rest zone: dwell disabled</li>
+            <li>Pause screen</li>
+            <li>Big-target starter layout</li>
+          </ul>
+        </div>
+        <div class="card" style="--hue:var(--sun); padding:16px 20px">
+          <h3 style="font-size:19px">Vision</h3>
+          <ul style="font-size:15.5px">
+            <li>CVI yellow/black high contrast</li>
+            <li>Dark, light and calm-mint themes</li>
+            <li>Andika letter font, built for literacy</li>
+          </ul>
+        </div>
+        <div class="card" style="--hue:var(--aqua); padding:16px 20px">
+          <h3 style="font-size:19px">Hearing &amp; speech</h3>
+          <ul style="font-size:15.5px">
+            <li>Voice pitch and speed sliders</li>
+            <li>Danish system voices (Sara, Magnus)</li>
+            <li>Teacher-recorded phonemes</li>
+          </ul>
+        </div>
+        <div class="card" style="--hue:var(--berry); padding:16px 20px">
+          <h3 style="font-size:19px">Classroom reality</h3>
+          <ul style="font-size:15.5px">
+            <li>Installs to the home screen</li>
+            <li>Works fully offline</li>
+            <li>Fonts bundled — no CDN</li>
+          </ul>
+        </div>
+      </div>
+      <div class="shot" style="height:360px"><img src="img/contrast.png" alt="The board in the high-contrast yellow on black theme"></div>
+    </div>
+    <div class="foot"><span>High-contrast CVI theme shown right</span><span class="num">06</span></div>
+  </section>
+
+  <!-- 07 ─────────────────────────────── WHERE IS THE AI -->
+  <section class="slide">
+    <div class="eyebrow">06 / Honest scope</div>
+    <h2>Where is the “AI”?</h2>
+    <p class="sub">Being precise about this changes which ethical questions actually apply.</p>
+    <div class="rule"></div>
+    <div class="cards c3">
+      <div class="card" style="--hue:var(--coral)">
+        <h3>Not in the app</h3>
+        <ul>
+          <li>No machine learning model</li>
+          <li>No camera, face or eye detection</li>
+          <li>No profiling or prediction of the child</li>
+          <li>Gaze is <b>simulated</b> by pointer/touch dwell</li>
+        </ul>
+      </div>
+      <div class="card" style="--hue:var(--sun)">
+        <h3>Borrowed from the device</h3>
+        <ul>
+          <li>Speech comes from the <b>operating system’s</b> text-to-speech</li>
+          <li>Voice quality and pronunciation are the vendor’s, not ours</li>
+          <li>Some platform voices process text in the cloud</li>
+        </ul>
+      </div>
+      <div class="card" style="--hue:var(--aqua)">
+        <h3>Rule-based, not learned</h3>
+        <ul>
+          <li>Dashboard “observations” are fixed thresholds we wrote</li>
+          <li>Example: corrections ≥ 30 % of letters → suggest longer dwell</li>
+          <li>They are hints for a teacher, never a diagnosis</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note" style="margin-top:26px">
+      <b>So the real ethical questions are not about autonomous decisions.</b> They are about children’s data on a
+      shared device, dependency on a vendor’s voice, and teachers trusting numbers we have not validated.
+    </div>
+    <div class="foot"><span>GazeVoice · AI Ethics</span><span class="num">07</span></div>
+  </section>
+
+  <!-- 08 ─────────────────────────────── ROLES -->
+  <section class="slide">
+    <div class="eyebrow">07 / Access</div>
+    <h2>Two roles on one device</h2>
+    <div class="rule" style="margin:14px 0 20px"></div>
+    <div class="body-grid split" style="height:calc(100% - 196px)">
+      <div class="shot" style="height:330px"><img src="img/start.png" alt="The start screen asking who is using the app"></div>
+      <div class="cards" style="gap:14px">
+        <div class="card" style="--hue:var(--leaf); padding:16px 20px">
+          <h3 style="font-size:19px">Student</h3>
+          <p style="font-size:16px">Sees only the board. Settings, the word editor and the progress page are hidden. Activity is logged under their name.</p>
+        </div>
+        <div class="card" style="--hue:var(--violet); padding:16px 20px">
+          <h3 style="font-size:19px">Supervisor — parent or teacher</h3>
+          <p style="font-size:16px">Gets every setting plus the progress page. Their own trial runs are not recorded, so the student’s numbers stay clean.</p>
+        </div>
+        <div class="card" style="--hue:var(--coral); padding:16px 20px">
+          <h3 style="font-size:19px">How it works today</h3>
+          <p style="font-size:16px; margin-bottom:12px">You choose a role and type a name. There is no password, no account and no server.</p>
+          <span class="chip gap">Separation of views, not authentication</span>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>GazeVoice · AI Ethics</span><span class="num">08</span></div>
+  </section>
+
+  <!-- 09 ─────────────────────────────── DASHBOARD -->
+  <section class="slide">
+    <div class="eyebrow">08 / Teacher view</div>
+    <h2>What the dashboard shows</h2>
+    <div class="rule" style="margin:14px 0 18px"></div>
+    <div class="body-grid split-wide" style="height:calc(100% - 190px)">
+      <div class="shot" style="height:376px"><img src="img/dashboard.png" alt="The teacher dashboard for one student"></div>
+      <div class="cards" style="gap:12px">
+        <div class="card" style="--hue:var(--leaf); padding:14px 18px">
+          <h3 style="font-size:18px; margin-bottom:5px">Right now</h3>
+          <p style="font-size:15.5px">The sentence being written, and whether the student is active, resting or paused.</p>
+        </div>
+        <div class="card" style="--hue:var(--violet); padding:14px 18px">
+          <h3 style="font-size:18px; margin-bottom:5px">Today &amp; last 7 days</h3>
+          <p style="font-size:15.5px">Letters, words, core words, sentences read, sound-outs, corrections, breaks, active minutes.</p>
+        </div>
+        <div class="card" style="--hue:var(--aqua); padding:14px 18px">
+          <h3 style="font-size:18px; margin-bottom:5px">Patterns</h3>
+          <p style="font-size:15.5px">Most-used words, words spelled independently, letters that keep getting deleted.</p>
+        </div>
+        <div class="card" style="--hue:var(--sun); padding:14px 18px">
+          <h3 style="font-size:18px; margin-bottom:5px">Teacher control</h3>
+          <p style="font-size:15.5px">Private notes, CSV export, and delete-history for one student or all — two clicks to confirm.</p>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>Screenshot uses demonstration data, not a real student</span><span class="num">09</span></div>
+  </section>
+
+  <!-- 10 ─────────────────────────────── DATA MAP -->
+  <section class="slide dense">
+    <div class="eyebrow">09 / Data</div>
+    <h2>What is stored, where, and for how long</h2>
+    <p class="sub">No server, no accounts, no analytics. Everything below lives in the browser on one device.</p>
+    <div class="rule" style="margin:16px 0 8px"></div>
+    <table>
+      <thead><tr><th style="width:30%">Data</th><th style="width:28%">Where</th><th>Retention</th></tr></thead>
+      <tbody>
+        <tr><td><b>Student &amp; adult names</b></td><td class="mono">localStorage</td><td>Until the browser’s site data is cleared</td></tr>
+        <tr><td><b>Activity log</b><br>letters, words, corrections, pauses, timestamps</td><td class="mono">localStorage</td><td>Until deleted in the dashboard. Capped at <b>5,000 events</b> — oldest dropped first</td></tr>
+        <tr><td><b>Live sentence</b></td><td class="mono">localStorage</td><td>Overwritten continuously; removed by “delete all history”</td></tr>
+        <tr><td><b>Teacher notes</b></td><td class="mono">localStorage</td><td>Until site data is cleared — <b>not</b> removed by delete-history <span class="chip gap" style="font-size:12px; padding:3px 9px">gap we found</span></td></tr>
+        <tr><td><b>Recorded phoneme sounds</b></td><td class="mono">IndexedDB</td><td>Until deleted per sound in Settings</td></tr>
+        <tr><td><b>App shell, fonts, icons</b></td><td class="mono">Cache Storage</td><td>Until a new app version replaces it</td></tr>
+      </tbody>
+    </table>
+    <div class="note" style="margin-top:18px">
+      <b>The only way data leaves the device is a teacher pressing “Download CSV”.</b>
+      Recordings and history are per browser, so a second iPad starts empty — and clearing Safari’s data erases both.
+    </div>
+    <div class="foot"><span>GazeVoice · AI Ethics</span><span class="num">10</span></div>
+  </section>
+
+  <!-- 11 ─────────────────────────────── CANVAS AUDIT -->
+  <section class="slide">
+    <div class="eyebrow">10 / Framework audit</div>
+    <h2>Data Stewardship Canvas · AI-DR 2026</h2>
+    <p class="sub">Nine steps, with an honest status for each.</p>
+    <div class="rule" style="margin:16px 0 20px"></div>
+    <div class="cards c3" style="gap:16px">
+      <div class="card" style="--hue:var(--leaf); padding:16px 18px">
+        <h3 style="font-size:18px">1 · Demand <span class="chip ok" style="float:right; font-size:12px; padding:3px 9px">met</span></h3>
+        <p style="font-size:15.5px">Literacy access for students without speech.</p>
+      </div>
+      <div class="card" style="--hue:var(--leaf); padding:16px 18px">
+        <h3 style="font-size:18px">2 · Supply <span class="chip ok" style="float:right; font-size:12px; padding:3px 9px">met</span></h3>
+        <p style="font-size:15.5px">Minimal: a first name, selections, timings. No diagnosis, no biometrics.</p>
+      </div>
+      <div class="card" style="--hue:var(--leaf); padding:16px 18px">
+        <h3 style="font-size:18px">3 · Value <span class="chip ok" style="float:right; font-size:12px; padding:3px 9px">met</span></h3>
+        <p style="font-size:15.5px">Independent practice. No ads, no resale, no tracking.</p>
+      </div>
+      <div class="card" style="--hue:var(--sun); padding:16px 18px">
+        <h3 style="font-size:18px">4 · Risk <span class="chip warn" style="float:right; font-size:12px; padding:3px 9px">partial</span></h3>
+        <p style="font-size:15.5px">Child data sits unlocked on a shared iPad.</p>
+      </div>
+      <div class="card" style="--hue:var(--sun); padding:16px 18px">
+        <h3 style="font-size:18px">5 · Operations <span class="chip warn" style="float:right; font-size:12px; padding:3px 9px">partial</span></h3>
+        <p style="font-size:15.5px">Roles are separated but not authenticated.</p>
+      </div>
+      <div class="card" style="--hue:var(--coral); padding:16px 18px">
+        <h3 style="font-size:18px">6 · Governance <span class="chip gap" style="float:right; font-size:12px; padding:3px 9px">open</span></h3>
+        <p style="font-size:15.5px">School sign-off and guardian consent not yet obtained.</p>
+      </div>
+      <div class="card" style="--hue:var(--leaf); padding:16px 18px">
+        <h3 style="font-size:18px">7 · Infrastructure <span class="chip ok" style="float:right; font-size:12px; padding:3px 9px">met</span></h3>
+        <p style="font-size:15.5px">Device-local by design; cloud sync deliberately out of scope.</p>
+      </div>
+      <div class="card" style="--hue:var(--sun); padding:16px 18px">
+        <h3 style="font-size:18px">8 · Decision use <span class="chip warn" style="float:right; font-size:12px; padding:3px 9px">partial</span></h3>
+        <p style="font-size:15.5px">Observations guide a teacher; thresholds are untested.</p>
+      </div>
+      <div class="card" style="--hue:var(--coral); padding:16px 18px">
+        <h3 style="font-size:18px">9 · Impact <span class="chip gap" style="float:right; font-size:12px; padding:3px 9px">open</span></h3>
+        <p style="font-size:15.5px">No pilot, no KPIs, no learning outcomes measured.</p>
+      </div>
+    </div>
+    <div class="foot"><span>GazeVoice · AI Ethics</span><span class="num">11</span></div>
+  </section>
+
+  <!-- 12 ─────────────────────────────── RISKS -->
+  <section class="slide">
+    <div class="eyebrow">11 / Limitations</div>
+    <h2>What we found wrong with our own tool</h2>
+    <div class="rule" style="margin:14px 0 22px"></div>
+    <div class="cards c2" style="gap:18px">
+      <div class="card" style="--hue:var(--coral)">
+        <h3>Privacy &amp; access</h3>
+        <ul>
+          <li><b>No authentication:</b> anyone who opens the app can read every student’s log on that device</li>
+          <li><b>Shared iPads:</b> names and history persist for the next person</li>
+          <li><b>Teacher notes survive</b> “delete history” — a bug, not a policy</li>
+          <li>No consent record and no audit trail of who looked</li>
+        </ul>
+      </div>
+      <div class="card" style="--hue:var(--sun)">
+        <h3>Product &amp; evidence</h3>
+        <ul>
+          <li><b>Dwell can repeat</b> if a pointer rests on a key — it should require leaving first</li>
+          <li><b>Phoneme audio is a workaround</b> (“jø” for J); pure sounds need teacher recordings</li>
+          <li><b>Thresholds are our guesses</b>, not validated against therapist judgement</li>
+          <li><b>No user testing yet</b> — no usability or learning results exist</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note" style="margin-top:24px">
+      <b>We can measure activity, not progress.</b> The dashboard shows what happened in the app; it is not
+      evidence that a child learned to read.
+    </div>
+    <div class="foot"><span>GazeVoice · AI Ethics</span><span class="num">12</span></div>
+  </section>
+
+  <!-- 13 ─────────────────────────────── ROADMAP -->
+  <section class="slide dense">
+    <div class="eyebrow">12 / Before classroom use</div>
+    <h2>What “ready” would require</h2>
+    <div class="rule" style="margin:14px 0 10px"></div>
+    <table>
+      <thead><tr><th style="width:26%">Step</th><th style="width:40%">Action</th><th>Done when</th></tr></thead>
+      <tbody>
+        <tr><td><b>Lock the adult view</b></td><td>Supervisor PIN; a teacher sees only assigned students</td><td>No cross-student exposure on a shared device</td></tr>
+        <tr><td><b>Fix the two defects</b></td><td>Notes covered by deletion; dwell requires gaze to leave a key</td><td>Verified by test, not by eye</td></tr>
+        <tr><td><b>Write it down</b></td><td>One-page data and retention note for the school, in Danish</td><td>Accepted by the school’s data contact</td></tr>
+        <tr><td><b>Get permission</b></td><td>School sign-off and informed guardian consent</td><td>Signed before a single student logs in</td></tr>
+        <tr><td><b>Supervised pilot</b></td><td>3–5 students with a therapist present; usability first</td><td>Selection accuracy and fatigue measured per student</td></tr>
+        <tr><td><b>Then outcomes</b></td><td>Phoneme recognition before and after, agreed with the therapist</td><td>Change measured against a baseline — or we stop</td></tr>
+      </tbody>
+    </table>
+    <div class="note" style="margin-top:16px">
+      <b>Order matters:</b> consent and access control come before more features, and usability comes before
+      any claim about learning.
+    </div>
+    <div class="foot"><span>GazeVoice · AI Ethics</span><span class="num">13</span></div>
+  </section>
+
+  <!-- 14 ─────────────────────────────── TAKEAWAY -->
+  <section class="slide">
+    <div class="cover">
+      <div>
+        <div class="eyebrow">13 / Takeaway</div>
+        <h1 style="font-size:64px">Giving every child<br>a voice.</h1>
+        <div class="meta" style="margin-top:26px; font-size:19px">
+          <div><b>It works today</b> — as a local, offline prototype you can install right now.</div>
+          <div><b>It stays on the device</b> — by design, not by accident.</div>
+          <div><b>It is not proven</b> — consent, access control and a supervised pilot come next.</div>
+        </div>
+        <p style="margin-top:28px; font-size:15px; color:var(--dim); line-height:1.6">
+          Sources: Geelsgårdskolen · Den Sociale Virksomhed, Region Hovedstaden ·
+          densocialevirksomhed.dk/geelsgaardskolen &nbsp;|&nbsp; Canvas: AI-DR 2026 course material &nbsp;|&nbsp;
+          Fonts: Andika (SIL) &amp; Baloo 2 (Ek Type), OFL 1.1 &nbsp;|&nbsp; Code: github.com/aiethicsjonas-cloud/Ai-aac-phonics-app
+        </p>
+      </div>
+      <div class="cover-art">
+        <img class="qr" id="qr2" src="img/qr.png" alt="QR code to open GazeVoice">
+        <img class="logo" src="../icon-512.png" alt="GazeVoice logo" style="width:168px; height:168px; border-radius:36px">
+        <div class="linkcard">
+          <div class="k">Questions · try it</div>
+          <a href="https://aiethicsjonas-cloud.github.io/Ai-aac-phonics-app/">aiethicsjonas-cloud.github.io/Ai-aac-phonics-app</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button id="prev" aria-label="Previous slide">&lsaquo;</button>
+  <button id="next" aria-label="Next slide">&rsaquo;</button>
+  <button id="full" aria-label="Full screen">Full</button>
+</div>
+<div class="hint" id="hint">Arrow keys or space to move &nbsp;·&nbsp; F = full screen &nbsp;·&nbsp; P = print to PDF</div>
+
+<script>
+  const slides = [...document.querySelectorAll('.slide')];
+  let i = Math.max(0, Math.min(slides.length - 1, (parseInt(location.hash.slice(1), 10) || 1) - 1));
+
+  function show(n){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    history.replaceState(null, '', '#' + (i + 1));
+  }
+  function fit(){
+    const s = Math.min(innerWidth / 1280, innerHeight / 720);
+    document.documentElement.style.setProperty('--scale', s);
+  }
+  addEventListener('resize', fit);
+  fit();
+  show(i);
+
+  document.getElementById('next').onclick = () => show(i + 1);
+  document.getElementById('prev').onclick = () => show(i - 1);
+  document.getElementById('full').onclick = () =>
+    document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+
+  addEventListener('keydown', (e) => {
+    if (['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)) { e.preventDefault(); show(i + 1); }
+    else if (['ArrowLeft','ArrowUp','PageUp'].includes(e.key)) { e.preventDefault(); show(i - 1); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+    else if (e.key.toLowerCase() === 'f') document.getElementById('full').click();
+    else if (e.key.toLowerCase() === 'p') { e.preventDefault(); print(); }
+  });
+
+  // Swipe for touch screens
+  let x0 = null;
+  addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+  addEventListener('touchend', e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) show(i + (dx < 0 ? 1 : -1));
+    x0 = null;
+  }, { passive: true });
+
+  // The QR image is optional: drop a PNG at slides/img/qr.png and it appears
+  // on the first and last slide. If the file is absent, remove the element.
+  ['qr','qr2'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('load', () => el.classList.add('show'));
+    el.addEventListener('error', () => el.remove());
+  });
+
+  // The keyboard hint fades away so it never sits on top of a slide footer.
+  const hint = document.getElementById('hint');
+  const hideHint = () => hint.classList.add('gone');
+  setTimeout(hideHint, 5000);
+  addEventListener('keydown', hideHint, { once: true });
+</script>
+</body>
+</html>
