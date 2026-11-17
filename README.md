@@ -36,14 +36,15 @@ The prototype now natively supports **Dansk (Danish)** alongside English:
 
 When the app opens it asks **Hvem bruger appen? · Who is using the app?**
 
-* **🧒 Elev / Student:** only the board. Settings, the quick-word editor, language and dwell controls are hidden so nothing changes by accident. The child can choose this card by looking at it.
-* **🧑‍🏫 Voksen / Supervisor (parent or teacher):** protected by a PIN that the first supervisor creates (4–8 digits; *Glemt PIN-koden?* lets you set a new one after a small sum). Supervisors get all settings plus **📊 Fremskridt / Progress**:
+* **🧒 Elev / Student:** after choosing *Elev*, type the student's name. Names used before on the device appear as big buttons, so next time the student just picks their own name by looking at it or tapping it. Students only see the board: settings, the quick-word editor, language and dwell controls are hidden.
+* **🧑‍🏫 Voksen / Supervisor (parent or teacher):** choose *Voksen* and type your name. No code is needed. Supervisors get all settings plus **📊 Fremskridt / Progress**:
+  * **Elev / Student picker:** see one student at a time, or all students together.
   * **Lige nu / Right now:** the sentence the student is writing, updated live.
   * **I dag / Today:** letters, words, quick words, sentences read, sounded-out words, rest breaks and active minutes.
   * **Seneste 7 dage / Last 7 days**, **most used words (30 days)** and a full **activity log**.
-  * **Download CSV** for reports, and **Slet historik** (two clicks) to delete the history.
-* Settings chosen by a supervisor (language, letter sounds, dwell time, layout, theme, voice, student name) are saved on the device and used in student mode.
-* A student can switch to supervisor mode with the small **🔒 Voksen** button, which asks for the PIN.
+  * **Download CSV** for the chosen student, and **Slet historik** (two clicks) to delete the history.
+* Settings chosen by a supervisor (language, letter sounds, dwell time, layout, theme, voice) are saved on the device and used in student mode.
+* **👥 Skift bruger / Switch user** (top right, and in Settings) goes back to the start screen.
 
 **Watching live:** open the app in a second window or on a second screen of the same computer or iPad, choose *Voksen* and open *Fremskridt*. It updates while the student uses the board in the first window.
 
