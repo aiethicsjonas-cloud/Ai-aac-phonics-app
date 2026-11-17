@@ -329,12 +329,29 @@
     .role-meta { font-size: 15px; opacity: .85; }
     .role-note { margin: 0; max-width: 62ch; font-size: 15px; color: var(--ink-soft); text-wrap: balance; }
 
-    .pin-form { display: flex; flex-direction: column; gap: 10px; }
-    .pin-input, .text-input { width: 100%; padding: 0 16px; border-radius: 16px; border: 2px solid var(--line); background: var(--surface-2); color: var(--ink); font-weight: 700; }
-    .pin-input { height: 58px; font-size: 28px; letter-spacing: .3em; text-align: center; }
-    .text-input { height: 48px; font-size: 17px; }
-    .pin-error { margin: 0; min-height: 1.4em; color: var(--coral); font-weight: 700; }
-    body.theme-yellow-black .pin-error { color: var(--ink); }
+    .role-step { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+    .name-step { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+    .name-back { align-self: flex-start; }
+    .name-emo { font-size: 56px; line-height: 1; }
+    .recent-names { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; width: 100%; }
+    .name-btn {
+      --tint: color-mix(in srgb, var(--hue) var(--tint-amt), var(--surface));
+      --dwell-fill: color-mix(in srgb, var(--hue) var(--fill-amt), var(--surface));
+      min-height: 84px; padding: 8px 16px; border-radius: 24px; background: var(--tint); color: var(--key-ink);
+      border: 3px solid var(--hue); border-bottom-width: 7px; border-bottom-color: color-mix(in srgb, var(--hue) 72%, #000);
+      font-family: var(--font-display); font-weight: 800; font-size: 28px; line-height: 1.1; overflow-wrap: anywhere;
+    }
+    .name-form { display: flex; gap: 10px; width: min(560px, 100%); }
+    .name-input { flex: 1; min-width: 0; height: 64px; padding: 0 20px; border-radius: 20px; border: 3px solid var(--line); background: var(--surface); color: var(--ink); font-size: 24px; font-weight: 700; -webkit-user-select: text; user-select: text; }
+    .name-input:focus { border-color: var(--brand); outline: none; }
+    .name-form .btn { min-height: 64px; }
+    .name-error { margin: 0; min-height: 1.4em; color: var(--coral); font-weight: 700; }
+    body.theme-yellow-black .name-error { color: var(--ink); }
+    .who-pill { color: var(--ink); max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+    @media (max-width: 1199px) { body.role-supervisor .who-pill { display: none; } }
+    .dash-filter { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .dash-filter label { font-family: var(--font-display); font-weight: 700; font-size: 13px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-soft); }
+    .dash-filter select { height: 44px; padding: 0 12px; border-radius: 14px; border: 2px solid var(--line); background: var(--surface-2); color: var(--ink); font-family: var(--font-display); font-weight: 700; font-size: 16px; }
 
     .dialog.dash { width: min(1100px, 100%); }
     .live-card { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 20px; background: var(--surface-2); border: 2px solid var(--line); }
@@ -371,6 +388,8 @@
       .role-card { min-height: 170px; }
       .role-emo { font-size: 48px; }
       .role-brand svg { width: 64px; height: 64px; }
+      .name-form { flex-direction: column; }
+      .name-btn { font-size: 24px; min-height: 72px; }
     }
 
     /* ---------- Narrower screens ---------- */
@@ -489,6 +508,8 @@
 
       <span class="spacer"></span>
 
+      <span class="pill who-pill" id="whoPill" hidden></span>
+
       <button type="button" class="pill supervisor-only" id="btnProgress"><span aria-hidden="true">📊</span><span class="lbl" id="progressBtnLabel">Fremskridt</span></button>
 
       <button type="button" class="pill gaze-target supervisor-only" id="btnOpenSettings">
@@ -496,8 +517,8 @@
         <span class="lbl" id="settingsBtnLabel">Indstillinger</span>
       </button>
 
-      <!-- Students only see this lock: it asks for the supervisor PIN -->
-      <button type="button" class="pill lock-btn student-only" id="btnStudentLock"><span aria-hidden="true">🔒</span><span id="lockBtnLabel">Voksen</span></button>
+      <!-- Students see this to hand the app back: it opens the start screen -->
+      <button type="button" class="pill lock-btn student-only" id="btnStudentLock"><span aria-hidden="true">👥</span><span id="lockBtnLabel">Skift bruger</span></button>
     </header>
 
     <!-- Pinned customizable quick words (Kerneord) -->
@@ -578,6 +599,7 @@
           <p>Stav med øjnene · Spell with your eyes</p>
         </div>
       </div>
+      <div class="role-step" id="roleStep">
       <h2 class="role-q">Hvem bruger appen? <span>· Who is using the app?</span></h2>
       <div class="role-cards">
         <button type="button" class="role-card gaze-target" id="roleStudent" style="--hue: var(--leaf)">
@@ -590,30 +612,25 @@
           <span class="role-emo" aria-hidden="true">🧑‍🏫</span>
           <span class="role-name">Voksen</span>
           <span class="role-sub">Forælder eller lærer · Parent or teacher</span>
-          <span class="role-meta">🔒 Indstillinger og fremskridt · Settings and progress</span>
+          <span class="role-meta">⚙️ Indstillinger og fremskridt · Settings and progress</span>
         </button>
       </div>
-      <p class="role-note">Elev-tilstand viser kun tavlen. Voksen-tilstand er beskyttet med en PIN-kode.<br>Student mode shows only the board. Supervisor mode is protected by a PIN.</p>
-    </div>
-  </div>
-
-  <!-- Supervisor PIN -->
-  <div class="scrim" id="pinModal" hidden>
-    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="pinTitle" style="width: min(440px, 100%)">
-      <div class="dialog-head">
-        <h2 id="pinTitle">Voksen-adgang</h2>
-        <button type="button" class="close-x" id="btnClosePin" aria-label="Luk">&times;</button>
+      <p class="role-note">Elev-tilstand viser kun tavlen. Voksen-tilstand har indstillinger og elevernes fremskridt.<br>Student mode shows only the board. Supervisor mode has settings and the students' progress.</p>
       </div>
-      <p class="help" id="pinHelp"></p>
-      <form class="pin-form" id="pinForm" autocomplete="off">
-        <input type="password" id="pinInput" class="pin-input" inputmode="numeric" maxlength="8" aria-label="PIN">
-        <input type="password" id="pinInput2" class="pin-input" inputmode="numeric" maxlength="8" aria-label="PIN" hidden>
-        <p class="pin-error" id="pinError" role="alert"></p>
-        <div class="dialog-foot">
-          <button type="button" class="link-danger" id="btnForgotPin">Glemt PIN-koden?</button>
-          <button type="submit" class="btn primary" id="btnPinOk">OK</button>
-        </div>
-      </form>
+
+      <!-- Step 2: who are you? Names used before on this device show up as big buttons -->
+      <div class="name-step" id="nameStep" hidden>
+        <button type="button" class="btn ghost name-back" id="btnNameBack">← Tilbage · Back</button>
+        <span class="name-emo" id="nameEmo" aria-hidden="true">🧒</span>
+        <h2 class="role-q" id="nameTitle">Hvad hedder eleven? <span>· What is the student's name?</span></h2>
+        <p class="role-note" id="nameHint"></p>
+        <div class="recent-names" id="recentNames"></div>
+        <form class="name-form" id="nameForm" autocomplete="off">
+          <input type="text" id="nameInput" class="name-input" maxlength="40" aria-label="Navn / Name" placeholder="Skriv navnet · Type the name">
+          <button type="submit" class="btn primary" id="btnNameStart">Start</button>
+        </form>
+        <p class="name-error" id="nameError" role="alert"></p>
+      </div>
     </div>
   </div>
 
@@ -623,6 +640,10 @@
       <div class="dialog-head">
         <h2 id="dashTitle">📊 Fremskridt</h2>
         <button type="button" class="close-x" id="btnCloseProgress" aria-label="Luk">&times;</button>
+      </div>
+      <div class="dash-filter">
+        <label for="dashStudent" id="dashStudentLabel">Elev</label>
+        <select id="dashStudent"></select>
       </div>
       <section class="live-card" aria-live="polite">
         <div class="live-head"><span class="live-dot" id="liveDot"></span><b id="liveTitle">Lige nu</b><span class="help" id="liveWhen"></span></div>
@@ -728,10 +749,8 @@
       </div>
 
       <div class="set-group">
-        <h3 id="studentSectionTitle">Elev &amp; PIN-kode</h3>
-        <input type="text" id="studentNameInput" class="text-input" placeholder="Elevens navn (valgfrit)" aria-label="Elevens navn" maxlength="40" autocomplete="off">
+        <h3 id="studentSectionTitle">Bruger</h3>
         <div class="foot-actions">
-          <button type="button" class="btn soft" id="btnChangePin">🔑 Skift PIN-kode</button>
           <button type="button" class="btn soft" id="btnSwitchRole">👥 Skift bruger</button>
         </div>
         <p class="help">Indstillingerne her gemmes på enheden og bruges også i elev-tilstand.</p>
@@ -1929,8 +1948,8 @@
       $('progressBtnLabel').textContent = tr('Fremskridt', 'Progress');
       $('btnProgress').setAttribute('aria-label', tr('Fremskridt', 'Progress'));
       btnOpenSettings.setAttribute('aria-label', ui('settings'));
-      $('lockBtnLabel').textContent = tr('Voksen', 'Supervisor');
-      $('btnStudentLock').setAttribute('aria-label', tr('Voksen-adgang (PIN)', 'Supervisor access (PIN)'));
+      $('lockBtnLabel').textContent = tr('Skift bruger', 'Switch user');
+      $('btnStudentLock').setAttribute('aria-label', tr('Skift bruger', 'Switch user'));
     }
 
     // Language Change Handler
@@ -1995,7 +2014,7 @@
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return;
       if (!recordModal.hidden) closeRecordModal();
-      [quickWordsModal, settingsModal, $('pinModal'), $('progressModal')].forEach(closeModal);
+      [quickWordsModal, settingsModal, $('progressModal')].forEach(closeModal);
     });
 
     const LAYOUT_HINTS = {
@@ -2082,7 +2101,6 @@
       pitchSlider.value = String(voicePitch); $('pitchVal').textContent = voicePitch.toFixed(2);
       rateSlider.value = String(voiceRate); $('rateVal').textContent = voiceRate.toFixed(2);
       toggleBlending.checked = autoBlendEnabled;
-      $('studentNameInput').value = studentName;
       applyTheme(currentTheme);
       applyLayoutButtons();
     }
@@ -2090,20 +2108,19 @@
     /* =====================================================================
        12. STUDENT & SUPERVISOR MODES
        Students only get the board. Supervisors (parents, teachers) unlock
-       settings and the progress page with a PIN. What the student does is
+       settings and the progress page after typing their name. What the student does is
        saved on this device only, and sent live to any other window of the
        app on the same device (BroadcastChannel), so a teacher can follow
        along from a second window or screen. Nothing is sent over the internet.
        ===================================================================== */
     const ACTIVITY_KEY = 'gazevoice_activity_v1';
     const LIVE_KEY = 'gazevoice_live_v1';
-    const PIN_KEY = 'gazevoice_pin_v1';
+    const NAMES_KEY = 'gazevoice_names_v1';
     const MAX_EVENTS = 5000;
     const activityChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('gazevoice-activity') : null;
     let currentRole = null; // null (start screen) | 'student' | 'supervisor'
     let restStartedAt = 0;
     const roleScreen = $('roleScreen');
-    const pinModal = $('pinModal');
     const progressModal = $('progressModal');
 
     function readActivity() {
@@ -2116,7 +2133,7 @@
     // Only student mode is recorded, so a supervisor trying things out does not change the numbers.
     function logActivity(kind, text, extra) {
       if (currentRole !== 'student') return;
-      const ev = Object.assign({ t: Date.now(), k: kind, x: text || '', l: currentLang }, extra || {});
+      const ev = Object.assign({ t: Date.now(), k: kind, x: text || '', l: currentLang, n: studentName }, extra || {});
       const list = readActivity();
       list.push(ev);
       if (list.length > MAX_EVENTS) list.splice(0, list.length - MAX_EVENTS);
@@ -2130,9 +2147,16 @@
 
     function publishLiveState() {
       if (currentRole !== 'student') return;
-      const st = { t: Date.now(), sentence: currentSentence, lang: currentLang, resting: isRestingEyes };
+      const st = { t: Date.now(), sentence: currentSentence, lang: currentLang, resting: isRestingEyes, n: studentName };
       try { localStorage.setItem(LIVE_KEY, JSON.stringify(st)); } catch (e) {}
       if (activityChannel) activityChannel.postMessage({ type: 'state' });
+    }
+
+    function updateWhoPill() {
+      const pill = $('whoPill');
+      const name = currentRole === 'student' ? studentName : currentRole === 'supervisor' ? supervisorName : '';
+      pill.hidden = !name;
+      pill.textContent = name ? (currentRole === 'student' ? '🧒 ' : '🧑‍🏫 ') + name : '';
     }
 
     function setRole(role) {
@@ -2140,103 +2164,100 @@
       document.body.classList.toggle('role-student', role === 'student');
       document.body.classList.toggle('role-supervisor', role === 'supervisor');
       roleScreen.hidden = true;
-      closeModal(pinModal);
       if (role === 'student') {
         [settingsModal, quickWordsModal, progressModal].forEach(closeModal);
         logActivity('session', studentName);
         publishLiveState();
       }
+      updateWhoPill();
       layoutGrid();
     }
 
     function showRoleScreen() {
-      [settingsModal, quickWordsModal, progressModal, pinModal].forEach(closeModal);
+      [settingsModal, quickWordsModal, progressModal].forEach(closeModal);
       if (!recordModal.hidden) closeRecordModal();
       currentRole = null;
       document.body.classList.remove('role-student', 'role-supervisor');
+      backToRoles();
       roleScreen.hidden = false;
     }
 
-    /* ---------- PIN (a child lock, not a password) ---------- */
-    const pinInput = $('pinInput');
-    const pinInput2 = $('pinInput2');
-    const pinError = $('pinError');
-    let pinMode = 'enter'; // 'enter' | 'create' | 'gate'
-    let gateAnswer = 0;
-    let afterPin = null;
-    const storedPin = () => { try { return localStorage.getItem(PIN_KEY) || ''; } catch (e) { return ''; } };
+    /* ---------- Who is using the app: names ----------
+       After choosing Elev or Voksen you type your name. Names used before on
+       this device are shown as big buttons, so a student can pick their own
+       name by looking at it instead of typing. */
+    let supervisorName = '';
+    let pendingRole = null;
 
-    function openPin(mode, onSuccess) {
-      pinMode = mode;
-      afterPin = onSuccess || null;
-      pinInput.value = '';
-      pinInput2.value = '';
-      pinError.textContent = '';
-      pinInput2.hidden = mode !== 'create';
-      pinInput.type = mode === 'gate' ? 'text' : 'password';
-      $('btnForgotPin').hidden = mode !== 'enter';
-      if (mode === 'create') {
-        $('pinTitle').textContent = tr('Opret en PIN-kode', 'Create a PIN');
-        $('pinHelp').textContent = tr('Vælg 4 til 8 cifre. Koden beskytter voksen-tilstanden, så eleven ikke kommer til at ændre indstillinger.', 'Choose 4 to 8 digits. The PIN protects supervisor mode so the student cannot change settings by accident.');
-        pinInput.placeholder = tr('PIN-kode', 'PIN');
-        pinInput2.placeholder = tr('Gentag PIN-koden', 'Repeat the PIN');
-      } else if (mode === 'gate') {
-        const a = 6 + Math.floor(Math.random() * 4);
-        const b = 6 + Math.floor(Math.random() * 4);
-        gateAnswer = a * b;
-        $('pinTitle').textContent = tr('Glemt PIN-kode', 'Forgot the PIN');
-        $('pinHelp').textContent = tr(`Svar på regnestykket for at vælge en ny kode: Hvad er ${a} × ${b}?`, `Answer to choose a new PIN: what is ${a} × ${b}?`);
-        pinInput.placeholder = tr('Svar', 'Answer');
-      } else {
-        $('pinTitle').textContent = tr('Voksen-adgang', 'Supervisor access');
-        $('pinHelp').textContent = tr('Skriv PIN-koden for at åbne voksen-tilstand.', 'Enter the PIN to open supervisor mode.');
-        pinInput.placeholder = 'PIN';
-      }
-      $('btnForgotPin').textContent = tr('Glemt PIN-koden?', 'Forgot the PIN?');
-      openModal(pinModal);
-      setTimeout(() => pinInput.focus(), 60);
+    function readNames() {
+      try {
+        const v = JSON.parse(localStorage.getItem(NAMES_KEY) || 'null') || {};
+        return { student: Array.isArray(v.student) ? v.student : [], supervisor: Array.isArray(v.supervisor) ? v.supervisor : [] };
+      } catch (e) { return { student: [], supervisor: [] }; }
     }
 
-    $('pinForm').addEventListener('submit', (e) => {
+    function rememberName(role, name) {
+      const names = readNames();
+      names[role] = [name, ...names[role].filter(n => n.toLowerCase() !== name.toLowerCase())].slice(0, 12);
+      try { localStorage.setItem(NAMES_KEY, JSON.stringify(names)); } catch (e) {}
+    }
+
+    function showNameStep(role) {
+      pendingRole = role;
+      $('roleStep').hidden = true;
+      $('nameStep').hidden = false;
+      $('nameEmo').textContent = role === 'student' ? '🧒' : '🧑‍🏫';
+      $('nameTitle').innerHTML = role === 'student'
+        ? 'Hvad hedder eleven? <span>· What is the student\'s name?</span>'
+        : 'Hvad hedder du? <span>· What is your name?</span>';
+      $('nameError').textContent = '';
+      $('nameInput').value = '';
+      const recent = readNames()[role];
+      $('nameHint').textContent = recent.length
+        ? (role === 'student' ? 'Vælg dit navn, eller skriv et nyt nedenfor. · Pick your name, or type a new one below.' : 'Vælg dit navn, eller skriv et nyt. · Pick your name, or type a new one.')
+        : (role === 'student' ? 'Skriv elevens navn. Næste gang kan eleven bare vælge sit navn. · Type the student\'s name. Next time they can just pick it.' : 'Skriv dit navn. · Type your name.');
+      const box = $('recentNames');
+      box.innerHTML = '';
+      box.hidden = recent.length === 0;
+      recent.forEach((name, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'name-btn gaze-target';
+        btn.style.setProperty('--hue', `var(--${QUICK_HUES[i % QUICK_HUES.length]})`);
+        btn.textContent = name;
+        attachDwellListeners(btn, () => enterAs(role, name));
+        box.appendChild(btn);
+      });
+      if (!recent.length) setTimeout(() => $('nameInput').focus(), 60);
+    }
+
+    function backToRoles() {
+      pendingRole = null;
+      $('nameStep').hidden = true;
+      $('roleStep').hidden = false;
+    }
+
+    function enterAs(role, rawName) {
+      const name = String(rawName || '').trim().replace(/\s+/g, ' ').slice(0, 40);
+      if (!name || !role) return;
+      rememberName(role, name);
+      if (role === 'student') studentName = name; else supervisorName = name;
+      saveSettings();
+      setRole(role);
+      showBlendBanner(`👋 ${tr('Hej', 'Hi')} <strong>${escapeHtml(name)}</strong>!`);
+    }
+
+    $('nameForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const value = pinInput.value.trim();
-      if (pinMode === 'create') {
-        if (!/^\d{4,8}$/.test(value)) { pinError.textContent = tr('Brug 4 til 8 cifre.', 'Use 4 to 8 digits.'); return; }
-        if (value !== pinInput2.value.trim()) { pinError.textContent = tr('De to koder er ikke ens.', 'The two PINs are not the same.'); return; }
-        try { localStorage.setItem(PIN_KEY, value); } catch (err) {}
-        const next = afterPin;
-        closeModal(pinModal);
-        showBlendBanner(tr('PIN-koden er gemt', 'PIN saved'));
-        if (next) next();
-        return;
-      }
-      if (pinMode === 'gate') {
-        if (parseInt(value, 10) === gateAnswer) openPin('create', afterPin);
-        else pinError.textContent = tr('Forkert svar. Prøv igen.', 'Wrong answer. Try again.');
-        return;
-      }
-      if (value && value === storedPin()) {
-        const next = afterPin;
-        closeModal(pinModal);
-        if (next) next();
-      } else {
-        pinError.textContent = tr('Forkert PIN-kode. Prøv igen.', 'Wrong PIN. Try again.');
-        pinInput.value = '';
-      }
+      const value = $('nameInput').value.trim();
+      if (!value) { $('nameError').textContent = 'Skriv et navn for at starte. · Type a name to start.'; return; }
+      enterAs(pendingRole, value);
     });
-
-    function requestSupervisor() {
-      openPin(storedPin() ? 'enter' : 'create', () => setRole('supervisor'));
-    }
-
-    $('btnForgotPin').addEventListener('click', () => openPin('gate', afterPin));
-    $('btnClosePin').addEventListener('click', () => closeModal(pinModal));
-    attachDwellListeners($('roleStudent'), () => setRole('student'));
-    attachDwellListeners($('roleSupervisor'), () => requestSupervisor());
-    $('btnStudentLock').addEventListener('click', requestSupervisor);
+    $('btnNameBack').addEventListener('click', backToRoles);
+    attachDwellListeners($('roleStudent'), () => showNameStep('student'));
+    attachDwellListeners($('roleSupervisor'), () => showNameStep('supervisor'));
+    $('btnStudentLock').addEventListener('click', showRoleScreen);
     $('btnSwitchRole').addEventListener('click', showRoleScreen);
-    $('btnChangePin').addEventListener('click', () => openPin('create', null));
-    $('studentNameInput').addEventListener('input', (e) => { studentName = e.target.value.trim().slice(0, 40); saveSettings(); });
 
     /* ---------- Progress page ---------- */
     const KIND_ICON = { letter: '🔤', word: '💬', quick: '⚡', sentence: '🔊', soundout: '🎶', delete: '⌫', clear: '🗑️', rest: '💤', session: '▶️' };
@@ -2254,7 +2275,7 @@
         case 'delete': return tr('Slettede et bogstav', 'Deleted a letter');
         case 'clear': return tr('Ryddede sætningen', 'Cleared the sentence');
         case 'rest': return tr(`Hvilede øjnene i ${x} sek.`, `Rested the eyes for ${x} s`);
-        case 'session': return tr('Elev-tilstand startet', 'Student mode started');
+        case 'session': return tr(`<b>${x || 'Eleven'}</b> startede appen`, `<b>${x || 'The student'}</b> started the app`);
         default: return x;
       }
     }
@@ -2276,16 +2297,48 @@
       };
     }
 
+    // Which student the progress page shows: '__all' or a name ('' = activity saved before names existed)
+    let dashSelected = null;
+    let dashOptionsKey = '';
+
+    function studentNamesInLog(list) {
+      const names = [];
+      for (let i = list.length - 1; i >= 0; i--) {
+        const n = list[i].n || '';
+        if (!names.includes(n)) names.push(n);
+      }
+      return names; // most recently active first
+    }
+
+    function selectedActivity() {
+      const list = readActivity();
+      return dashSelected === '__all' || dashSelected === null ? list : list.filter(e => (e.n || '') === dashSelected);
+    }
+
     function renderDashboard() {
-      const all = readActivity();
+      const everything = readActivity();
+      const names = studentNamesInLog(everything);
+      if (dashSelected === null || (dashSelected !== '__all' && !names.includes(dashSelected))) {
+        dashSelected = names.includes(studentName) ? studentName : (names.length ? names[0] : '__all');
+      }
+      const select = $('dashStudent');
+      const optionsKey = currentLang + '|' + names.join('|');
+      if (optionsKey !== dashOptionsKey) {
+        dashOptionsKey = optionsKey;
+        select.innerHTML = `<option value="__all">${tr('Alle elever', 'All students')}</option>` +
+          names.map(n => `<option value="${escapeHtml(n)}">${n ? escapeHtml(n) : tr('Uden navn', 'No name')}</option>`).join('');
+      }
+      select.value = dashSelected;
+      $('dashStudentLabel').textContent = tr('Elev', 'Student');
+      const all = dashSelected === '__all' ? everything : everything.filter(e => (e.n || '') === dashSelected);
       const live = readLiveState();
-      $('dashTitle').textContent = '📊 ' + tr('Fremskridt', 'Progress') + (studentName ? ' · ' + studentName : '');
+      $('dashTitle').textContent = '📊 ' + tr('Fremskridt', 'Progress') + (dashSelected && dashSelected !== '__all' ? ' · ' + dashSelected : '');
 
       // Right now
-      const lastT = Math.max(all.length ? all[all.length - 1].t : 0, live && live.t ? live.t : 0);
+      const lastT = Math.max(everything.length ? everything[everything.length - 1].t : 0, live && live.t ? live.t : 0);
       const isLive = lastT > 0 && (Date.now() - lastT) < 60000;
       $('liveDot').classList.toggle('on', isLive);
-      $('liveTitle').textContent = isLive ? tr('Lige nu', 'Right now') : tr('Senest', 'Latest');
+      $('liveTitle').textContent = (isLive ? tr('Lige nu', 'Right now') : tr('Senest', 'Latest')) + (live && live.n ? ' · ' + live.n : '');
       $('liveWhen').textContent = lastT ? tr('Sidst aktiv ', 'Last active ') + agoText(lastT) : tr('Ingen aktivitet endnu', 'No activity yet');
       const sentence = live && typeof live.sentence === 'string' ? live.sentence : '';
       if (sentence.trim()) {
@@ -2344,7 +2397,8 @@
         ? recent.map(ev => `<div class="log-row"><time>${new Date(ev.t).toLocaleTimeString(dashLocale(), { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</time><span aria-hidden="true">${KIND_ICON[ev.k] || '•'}</span><span>${describeEvent(ev)}</span></div>`).join('')
         : `<p class="empty-note">${tr('Her vises alt, hvad eleven gør i elev-tilstand.', 'Everything the student does in student mode shows up here.')}</p>`;
 
-      $('privacyNote').textContent = tr('Alt gemmes kun på denne enhed. Kun elev-tilstand registreres.', 'Everything is saved on this device only. Only student mode is recorded.');
+      $('privacyNote').textContent = tr('Alt gemmes kun på denne enhed. Kun elev-tilstand registreres.', 'Everything is saved on this device only. Only student mode is recorded.') +
+        (supervisorName ? tr(` Logget ind som ${supervisorName}.`, ` Signed in as ${supervisorName}.`) : '');
       $('btnExportCsv').textContent = '⬇ ' + tr('Hent CSV', 'Download CSV');
       if (!clearArmed) $('btnClearActivity').textContent = tr('Slet historik', 'Delete history');
     }
@@ -2359,18 +2413,20 @@
     window.addEventListener('storage', (e) => { if (e.key === ACTIVITY_KEY || e.key === LIVE_KEY) refreshDashboardSoon(); });
     setInterval(refreshDashboardSoon, 5000);
 
-    $('btnProgress').addEventListener('click', () => { renderDashboard(); openModal(progressModal); });
+    $('btnProgress').addEventListener('click', () => { dashSelected = null; renderDashboard(); openModal(progressModal); });
+    $('dashStudent').addEventListener('change', (e) => { dashSelected = e.target.value; renderDashboard(); });
     $('btnCloseProgress').addEventListener('click', () => closeModal(progressModal));
 
     $('btnExportCsv').addEventListener('click', () => {
-      const all = readActivity();
-      const header = [tr('tid', 'time'), tr('type', 'type'), tr('tekst', 'text'), tr('detalje', 'detail'), tr('sprog', 'language')];
-      const rows = all.map(ev => [new Date(ev.t).toLocaleString(dashLocale()), ev.k, ev.x || '', ev.b || ev.via || '', ev.l || '']);
+      const all = selectedActivity();
+      const header = [tr('tid', 'time'), tr('elev', 'student'), tr('type', 'type'), tr('tekst', 'text'), tr('detalje', 'detail'), tr('sprog', 'language')];
+      const rows = all.map(ev => [new Date(ev.t).toLocaleString(dashLocale()), ev.n || '', ev.k, ev.x || '', ev.b || ev.via || '', ev.l || '']);
       const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\r\n');
       const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `gazevoice-${(studentName || tr('elev', 'student')).replace(/[^\wæøåÆØÅ-]+/g, '_')}-${new Date().toISOString().slice(0, 10)}.csv`;
+      const who = dashSelected && dashSelected !== '__all' ? dashSelected : tr('alle', 'all');
+      link.download = `gazevoice-${who.replace(/[^\wæøåÆØÅ-]+/g, '_')}-${new Date().toISOString().slice(0, 10)}.csv`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -2396,7 +2452,7 @@
       showBlendBanner(tr('Historikken er slettet', 'History deleted'));
     });
 
-    [pinModal, progressModal].forEach(m => m.addEventListener('click', (e) => { if (e.target === m) closeModal(m); }));
+    progressModal.addEventListener('click', (e) => { if (e.target === progressModal) closeModal(progressModal); });
 
 
     // Init
