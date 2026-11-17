@@ -32,6 +32,25 @@ The prototype now natively supports **Dansk (Danish)** alongside English:
 
 ---
 
+## 👥 Elev & Voksen (Student & Supervisor Modes)
+
+When the app opens it asks **Hvem bruger appen? · Who is using the app?**
+
+* **🧒 Elev / Student:** only the board. Settings, the quick-word editor, language and dwell controls are hidden so nothing changes by accident. The child can choose this card by looking at it.
+* **🧑‍🏫 Voksen / Supervisor (parent or teacher):** protected by a PIN that the first supervisor creates (4–8 digits; *Glemt PIN-koden?* lets you set a new one after a small sum). Supervisors get all settings plus **📊 Fremskridt / Progress**:
+  * **Lige nu / Right now:** the sentence the student is writing, updated live.
+  * **I dag / Today:** letters, words, quick words, sentences read, sounded-out words, rest breaks and active minutes.
+  * **Seneste 7 dage / Last 7 days**, **most used words (30 days)** and a full **activity log**.
+  * **Download CSV** for reports, and **Slet historik** (two clicks) to delete the history.
+* Settings chosen by a supervisor (language, letter sounds, dwell time, layout, theme, voice, student name) are saved on the device and used in student mode.
+* A student can switch to supervisor mode with the small **🔒 Voksen** button, which asks for the PIN.
+
+**Watching live:** open the app in a second window or on a second screen of the same computer or iPad, choose *Voksen* and open *Fremskridt*. It updates while the student uses the board in the first window.
+
+**Privacy:** everything is stored only on that device (in the browser). Nothing is sent over the internet, and only student mode is recorded. Following a student live from a *different* device would need an online database; talk to the school about data protection (GDPR) before adding that.
+
+---
+
 ## 🔊 How to Download High-Quality Danish Voices (Free)
 
 Modern operating systems have built-in Danish text-to-speech. To get the highest quality, most natural pediatric/teacher voice:
@@ -61,6 +80,8 @@ Modern operating systems have built-in Danish text-to-speech. To get the highest
 4. **⚡ Pinned Customizable Quick Words:** Dwell on any quick word to speak it instantly. Teachers can customize the list with the **"Rediger Kerneord"** button.
 5. **High-Contrast Themes:** Dark Navy, High Contrast Yellow/Black (CVI standard), Crisp Light, and Sensory Calm Mint.
 6. **Instant Language Switcher:** Switch between 🇩🇰 Dansk and 🇬🇧 English in real time via the top bar.
+7. **🔊 Read Word Out Loud (*Læs ordet højt*):** Speaks the word being spelled and moves it into the sentence bar.
+8. **Works Without Outside Servers:** Fonts and styles are part of the app, so it looks the same and works fully offline on every network.
 
 ---
 
