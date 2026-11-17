@@ -6,24 +6,24 @@
   Everything the app needs (fonts included) lives in this repository, so it
   works fully offline and does not depend on any outside server.
 */
-const CACHE_VERSION = 'gazevoice-v3';
+const CACHE_VERSION = 'gazevoice-v4';
 
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./fonts/andika-400-latin-ext.woff2",
-  "./fonts/andika-400-latin.woff2",
-  "./fonts/andika-700-latin-ext.woff2",
-  "./fonts/andika-700-latin.woff2",
-  "./fonts/baloo2-500-800-latin-ext.woff2",
-  "./fonts/baloo2-500-800-latin.woff2",
-  "./fonts/fonts.css",
-  "./icons/icon.svg",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "./icons/icon-maskable-512.png",
-  "./icons/apple-touch-icon.png"
+  "./andika-400-latin-ext.woff2",
+  "./andika-400-latin.woff2",
+  "./andika-700-latin-ext.woff2",
+  "./andika-700-latin.woff2",
+  "./baloo2-500-800-latin-ext.woff2",
+  "./baloo2-500-800-latin.woff2",
+  "./fonts.css",
+  "./icon.svg",
+  "./icon-192.png",
+  "./icon-512.png",
+  "./icon-maskable-512.png",
+  "./apple-touch-icon.png"
 ];
 
 self.addEventListener('install', (event) => {
