@@ -94,6 +94,17 @@ The app is a **Progressive Web App (PWA)** hosted on GitHub Pages:
 
 Every push to `main` updates the live site within a minute or two. Installed apps pick up the new version the next time they are opened.
 
+### 🎤 Project presentation (slides)
+
+The AI Ethics presentation lives in [`slides/`](slides/) and is published alongside the app:
+
+**https://aiethicsjonas-cloud.github.io/Ai-aac-phonics-app/slides/**
+
+* 14 slides, navigated with the arrow keys or space; **F** for full screen; **P** to print.
+* [`slides/GazeVoice-presentation.pdf`](slides/GazeVoice-presentation.pdf) is an export of the same deck, for upload or printing.
+* Screenshots in `slides/img/` are regenerated from the real app, with demonstration data only — no real student.
+* To show a QR code on the first and last slide, save one as `slides/img/qr.png`. Without it, those slides simply show the link.
+
 ### 📱 Install on a phone or tablet
 * **iPhone / iPad (Safari):** open the link → tap **Share** → **Add to Home Screen** (*Føj til hjemmeskærm*).
 * **Android (Chrome):** open the link → tap **Install app**, or ⋮ menu → **Add to Home screen**.
