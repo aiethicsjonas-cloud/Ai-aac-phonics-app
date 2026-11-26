@@ -48,6 +48,11 @@
       --shadow: none;
       color-scheme: dark;
     }
+    /* Chart line colour per theme (checked for contrast against each theme's surface) */
+    :root { --chart: #8C89FA; }
+    body.theme-light-contrast { --chart: #5653E0; }
+    body.theme-yellow-black { --chart: #FFFF00; }
+    body.theme-sensory-calm { --chart: #2DB683; }
     body.theme-sensory-calm {
       --bg: #131C19; --surface: #1D2D27; --surface-2: #22372F; --ink: #ECFDF5; --ink-soft: #A7F3D0; --line: #2D453B;
       --brand: #34D399; --brand-ink: #0B1F17; --on-sun: #1F3B33;
@@ -456,6 +461,114 @@
     .board-select { height: 44px; padding: 0 12px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface-2); color: var(--ink); font-family: var(--font-display); font-weight: 700; font-size: 16px; }
     @media (max-width: 640px) { .t-top .pill .lbl { display: none; } .t-detail-head h2 { font-size: 26px; } }
 
+    /* ---------- Sign in ---------- */
+    .login { width: min(560px, 100%); display: flex; flex-direction: column; gap: 14px; text-align: left; }
+    .login .role-q { text-align: center; }
+    .login-roles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .role-pick {
+      --tint: color-mix(in srgb, var(--hue) var(--tint-amt), var(--surface));
+      --dwell-fill: color-mix(in srgb, var(--hue) var(--fill-amt), var(--surface));
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 118px; padding: 12px;
+      border-radius: 24px; background: var(--surface); color: var(--key-ink); border: 3px solid var(--line); border-bottom-width: 7px; opacity: .8;
+    }
+    .role-pick[aria-checked="true"] { background: var(--tint); border-color: var(--hue); border-bottom-color: color-mix(in srgb, var(--hue) 72%, #000); opacity: 1; }
+    .role-pick .role-emo { font-size: 40px; }
+    .role-pick .role-name { font-size: 28px; margin-top: 2px; }
+    .role-pick .role-sub { font-size: 14px; text-align: center; }
+    .field { display: flex; flex-direction: column; gap: 6px; font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--ink-soft); }
+    .field .name-input { width: 100%; }
+    .name-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: -4px; }
+    .name-chip { padding: 6px 14px; border-radius: 999px; border: 2px solid var(--line); background: var(--surface-2); color: var(--ink); font-family: var(--font-display); font-weight: 700; font-size: 15px; }
+    .login-btn { width: 100%; }
+    .login .role-note { text-align: center; }
+
+    /* ---------- Teacher overview: students ranked by who needs help ---------- */
+    .rank { display: flex; flex-direction: column; gap: 8px; }
+    .rank-head, .rank-row { display: grid; grid-template-columns: 34px minmax(150px, 1.25fr) minmax(190px, 1.6fr) repeat(5, minmax(84px, 1fr)); gap: 10px; align-items: center; }
+    .rank-head { padding: 0 16px; font-family: var(--font-display); font-weight: 700; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
+    .rank-head span:nth-child(n+4) { text-align: right; }
+    .rank-row { text-align: left; padding: 12px 16px; border-radius: 18px; background: var(--surface); border: 2px solid var(--line); color: var(--ink); transition: border-color .15s; }
+    .rank-row:hover { border-color: var(--brand); }
+    .rank-row.lvl-urgent { border-color: color-mix(in srgb, var(--coral) 70%, var(--line)); }
+    .r-num { font-family: var(--font-display); font-weight: 800; font-size: 20px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+    .r-who { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+    .r-who .s-name { font-size: 21px; }
+    .r-live { font-weight: 700; font-size: 15px; padding: 2px 8px; border-radius: 8px; background: var(--surface-2); overflow-wrap: anywhere; }
+    .r-live .caret { display: inline-block; height: .9em; vertical-align: -2px; margin: 0 0 0 2px; }
+    .r-level { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+    .r-why { font-size: 13px; color: var(--ink-soft); line-height: 1.3; }
+    .r-kpi { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; padding: 4px 6px; border-radius: 10px; font-variant-numeric: tabular-nums; text-align: right; }
+    .r-kpi b { font-family: var(--font-display); font-size: 18px; }
+    .r-kpi small { font-size: 12px; color: var(--ink-soft); }
+    .r-kpi.flag { background: color-mix(in srgb, var(--sun) 22%, var(--surface)); }
+    .r-kpi.flag.up b::before { content: "▲ "; font-size: 11px; vertical-align: 2px; }
+    .r-kpi.flag.down b::before { content: "▼ "; font-size: 11px; vertical-align: 2px; }
+    .r-kpi .k-label { font-size: 12px; color: var(--ink-soft); font-family: var(--font-display); font-weight: 700; }
+    .lvl { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-family: var(--font-display); font-weight: 800; font-size: 14px; border: 2px solid var(--line); color: var(--ink); white-space: nowrap; }
+    .lvl.urgent { background: color-mix(in srgb, var(--coral) 30%, var(--surface)); border-color: var(--coral); }
+    .lvl.watch { background: color-mix(in srgb, var(--sun) 26%, var(--surface)); border-color: var(--sun); }
+    .lvl.ok { background: color-mix(in srgb, var(--leaf) 22%, var(--surface)); border-color: var(--leaf); }
+    .lvl.none { color: var(--ink-soft); }
+    .s-status.stuck { color: var(--ink); border-color: var(--coral); background: color-mix(in srgb, var(--coral) 18%, var(--surface)); }
+    .demo-tag { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; border: 1.5px dashed var(--ink-soft); color: var(--ink-soft); }
+    .t-priority { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .kpi-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    .kpi-strip .r-kpi { align-items: flex-start; text-align: left; padding: 10px 12px; border-radius: 16px; background: var(--surface-2); border: 2px solid var(--line); }
+    .kpi-strip .r-kpi.flag { border-color: var(--sun); background: color-mix(in srgb, var(--sun) 18%, var(--surface-2)); }
+    .kpi-strip .r-kpi b { font-size: 24px; }
+
+    /* ---------- Development charts ---------- */
+    .chart-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+    .chart-grid .chart-card { grid-column: span 2; }
+    .chart-grid .chart-card:nth-child(n+4) { grid-column: span 3; }
+    @media (max-width: 1080px) {
+      .chart-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .chart-grid .chart-card, .chart-grid .chart-card:nth-child(n+4) { grid-column: span 1; }
+      .chart-grid .chart-card:last-child { grid-column: 1 / -1; }
+    }
+    .chart-card { margin: 0; display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 18px; background: var(--surface-2); border: 2px solid var(--line); min-width: 0; }
+    .chart-card figcaption { display: flex; flex-direction: column; gap: 1px; }
+    .chart-card figcaption b { font-family: var(--font-display); font-size: 16px; }
+    .chart-card figcaption span { font-size: 12.5px; color: var(--ink-soft); }
+    .chart-wrap { position: relative; }
+    svg.chart { width: 100%; height: auto; max-width: 100%; display: block; overflow: visible; touch-action: pan-y; }
+    svg.chart:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; border-radius: 8px; }
+    .c-grid { stroke: var(--line); stroke-width: 1; }
+    .c-tick { fill: var(--ink-soft); font-size: 10.5px; font-family: var(--font-letter); }
+    .c-end { fill: var(--ink); font-size: 11.5px; font-weight: 700; font-family: var(--font-display); }
+    .c-line { fill: none; stroke: var(--chart); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+    .c-area { fill: var(--chart); fill-opacity: .1; stroke: none; }
+    .c-dot { fill: var(--chart); stroke: var(--surface-2); stroke-width: 2; }
+    .c-cross { stroke: var(--ink-soft); stroke-width: 1; }
+    .c-hover { fill: var(--chart); stroke: var(--surface-2); stroke-width: 2; }
+    .chart-tip { position: absolute; transform: translate(-50%, calc(-100% - 12px)); pointer-events: none; display: flex; flex-direction: column; gap: 1px; padding: 6px 10px; border-radius: 10px; background: var(--ink); color: var(--bg); font-size: 12px; white-space: nowrap; box-shadow: var(--shadow); z-index: 2; }
+    .chart-tip strong { font-family: var(--font-display); font-size: 15px; }
+    .chart-foot { margin: 0; font-size: 13px; color: var(--ink); }
+    .chart-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .chart-head .btn { min-height: 38px; padding: 4px 14px; font-size: 14px; }
+
+    .r-kpis { display: contents; }
+    @media (max-width: 1080px) {
+      .rank-head { display: none; }
+      .rank-row { grid-template-columns: 30px minmax(0, 1fr); row-gap: 8px; }
+      .rank-row .r-num { grid-column: 1; grid-row: 1 / span 2; align-self: start; }
+      .rank-row .r-who { grid-column: 2; grid-row: 1; }
+      .rank-row .r-level { grid-column: 2; grid-row: 2; }
+      .rank-row .r-kpis { grid-column: 2; grid-row: 3; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+      .rank-row .r-kpi { align-items: flex-start; text-align: left; background: var(--surface-2); }
+      .rank-row .r-kpi.flag { background: color-mix(in srgb, var(--sun) 22%, var(--surface)); }
+      .rank-row .r-kpi::before { content: attr(data-label); font-size: 11.5px; line-height: 1.2; color: var(--ink-soft); font-family: var(--font-display); font-weight: 700; }
+    }
+    @media (max-width: 640px) {
+      .rank-row { grid-template-columns: 26px minmax(0, 1fr); }
+      .rank-row .r-kpis { grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .rank-row .r-kpis .r-kpi:last-child { grid-column: 1 / -1; }
+      .login-roles { gap: 8px; }
+      .role-pick { min-height: 100px; }
+      .chart-grid { grid-template-columns: minmax(0, 1fr); }
+      .chart-grid .chart-card, .chart-grid .chart-card:nth-child(n+4), .chart-grid .chart-card:last-child { grid-column: auto; }
+    }
+
     /* ---------- Narrower screens ---------- */
     @media (max-width: 1199px) and (min-width: 641px) {
       .edit-quick { width: 56px; padding: 0; justify-content: center; font-size: 22px; }
@@ -585,7 +698,7 @@
       <button type="button" class="pill gaze-target pause-btn student-only" id="btnPause"><span aria-hidden="true">⏸</span><span id="pauseBtnLabel">Pause</span></button>
 
       <!-- Students see this to hand the app back: it opens the start screen -->
-      <button type="button" class="pill lock-btn student-only" id="btnStudentLock"><span aria-hidden="true">👥</span><span id="lockBtnLabel">Skift bruger</span></button>
+      <button type="button" class="pill lock-btn student-only" id="btnStudentLock"><span aria-hidden="true">🚪</span><span id="lockBtnLabel">Log ud</span></button>
     </header>
 
     <!-- Pinned customizable quick words (Kerneord) -->
@@ -666,38 +779,28 @@
           <p>Stav med øjnene · Spell with your eyes</p>
         </div>
       </div>
-      <div class="role-step" id="roleStep">
-      <h2 class="role-q">Hvem bruger appen? <span>· Who is using the app?</span></h2>
-      <div class="role-cards">
-        <button type="button" class="role-card gaze-target" id="roleStudent" style="--hue: var(--leaf)">
-          <span class="role-emo" aria-hidden="true">🧒</span>
-          <span class="role-name">Elev</span>
-          <span class="role-sub">Student</span>
-          <span class="role-meta">Tal og stav med tavlen · Talk and spell</span>
-        </button>
-        <button type="button" class="role-card gaze-target" id="roleSupervisor" style="--hue: var(--violet)">
-          <span class="role-emo" aria-hidden="true">🧑‍🏫</span>
-          <span class="role-name">Voksen</span>
-          <span class="role-sub">Forælder eller lærer · Parent or teacher</span>
-          <span class="role-meta">👀 Følg elevernes fremskridt · Follow the students' progress</span>
-        </button>
-      </div>
-      <p class="role-note">Elev-tilstand viser tavlen. Voksen-tilstand viser en oversigt over alle elever på enheden.<br>Student mode shows the board. Supervisor mode shows an overview of all students on this device.</p>
-      </div>
-
-      <!-- Step 2: who are you? Names used before on this device show up as big buttons -->
-      <div class="name-step" id="nameStep" hidden>
-        <button type="button" class="btn ghost name-back" id="btnNameBack">← Tilbage · Back</button>
-        <span class="name-emo" id="nameEmo" aria-hidden="true">🧒</span>
-        <h2 class="role-q" id="nameTitle">Hvad hedder eleven? <span>· What is the student's name?</span></h2>
-        <p class="role-note" id="nameHint"></p>
-        <div class="recent-names" id="recentNames"></div>
-        <form class="name-form" id="nameForm" autocomplete="off">
-          <input type="text" id="nameInput" class="name-input" maxlength="40" aria-label="Navn / Name" placeholder="Skriv navnet · Type the name">
-          <button type="submit" class="btn primary" id="btnNameStart">Start</button>
-        </form>
-        <p class="name-error" id="nameError" role="alert"></p>
-      </div>
+      <!-- Sign in: who you are, username and password (mockup: any first name + AIETHICS) -->
+      <form class="login" id="loginForm" autocomplete="off" novalidate>
+        <h2 class="role-q">Log ind <span>· Sign in</span></h2>
+        <div class="login-roles" role="radiogroup" aria-label="Jeg er · I am">
+          <button type="button" class="role-pick gaze-target" id="roleStudent" data-role="student" role="radio" aria-checked="true" style="--hue: var(--leaf)">
+            <span class="role-emo" aria-hidden="true">🧒</span><span class="role-name">Elev</span><span class="role-sub">Student</span>
+          </button>
+          <button type="button" class="role-pick gaze-target" id="roleSupervisor" data-role="supervisor" role="radio" aria-checked="false" style="--hue: var(--violet)">
+            <span class="role-emo" aria-hidden="true">🧑‍🏫</span><span class="role-name">Voksen</span><span class="role-sub">Lærer eller forælder · Teacher or parent</span>
+          </button>
+        </div>
+        <label class="field" for="loginName">Brugernavn (fornavn) · Username (first name)
+          <input type="text" id="loginName" class="name-input" maxlength="30" autocomplete="username" autocapitalize="words" spellcheck="false">
+        </label>
+        <div class="name-chips" id="recentNames" aria-label="Navne brugt før · Names used before"></div>
+        <label class="field" for="loginPassword">Adgangskode · Password
+          <input type="password" id="loginPassword" class="name-input" maxlength="40" autocomplete="current-password" autocapitalize="characters" spellcheck="false">
+        </label>
+        <button type="submit" class="btn primary big login-btn" id="btnLogin">Log ind · Sign in</button>
+        <p class="name-error" id="loginError" role="alert"></p>
+        <p class="role-note">Mockup: log ind med et fornavn og adgangskoden <b>AIETHICS</b>.<br>Mockup: sign in with any first name and the password <b>AIETHICS</b>.</p>
+      </form>
     </div>
   </div>
 
@@ -721,16 +824,19 @@
       <span class="pill" id="tWho" hidden></span>
       <button type="button" class="pill" id="tBtnSettings"><span aria-hidden="true">⚙️</span><span class="lbl" id="tBtnSettingsLabel">Tavlens indstillinger</span></button>
       <button type="button" class="pill" id="tBtnQuick"><span aria-hidden="true">✏️</span><span class="lbl" id="tBtnQuickLabel">Kerneord</span></button>
-      <button type="button" class="pill" id="tBtnSwitch"><span aria-hidden="true">👥</span><span class="lbl" id="tBtnSwitchLabel">Skift bruger</span></button>
+      <button type="button" class="pill" id="tBtnSwitch"><span aria-hidden="true">🚪</span><span class="lbl" id="tBtnSwitchLabel">Log ud</span></button>
     </header>
 
     <!-- All students -->
     <div class="t-panel" id="tOverview">
       <p class="t-intro" id="tIntro"></p>
-      <div class="t-grid" id="tGrid"></div>
+      <div class="rank" id="tRank"></div>
       <div class="t-foot">
         <span class="help" id="tPrivacy"></span>
-        <button type="button" class="btn ghost" id="tBtnClearAll">Slet al historik</button>
+        <div class="foot-actions">
+          <button type="button" class="btn soft" id="tBtnDemo">Indlæs eksempeldata</button>
+          <button type="button" class="btn ghost" id="tBtnClearAll">Slet al historik</button>
+        </div>
       </div>
     </div>
 
@@ -743,6 +849,13 @@
         <span class="spacer"></span>
         <button type="button" class="btn soft" id="tBtnCsv">⬇ Hent CSV</button>
       </div>
+      <div class="t-priority" id="tPriority"></div>
+      <div class="set-group"><h3 id="tKpiTitle">I dag sammenlignet med normalt</h3><div class="kpi-strip" id="tKpis"></div></div>
+      <section class="set-group" aria-labelledby="tChartsTitle">
+        <div class="chart-head"><h3 id="tChartsTitle">Udvikling (14 dage)</h3><button type="button" class="btn ghost" id="tBtnChartTable" aria-expanded="false" aria-controls="tChartTableWrap">Vis som tabel</button></div>
+        <div class="chart-grid" id="tCharts"></div>
+        <div class="table-wrap" id="tChartTableWrap" hidden><table class="day-table" id="tChartTable"></table></div>
+      </section>
       <section class="live-card" aria-live="polite">
         <div class="live-head"><b id="tLiveTitle">Lige nu</b><span class="help" id="tLiveWhen"></span></div>
         <div class="live-sentence" id="tLive"></div>
@@ -754,6 +867,7 @@
         <div class="set-group">
           <h3 id="tTopTitle">Mest brugte ord (30 dage)</h3><div class="top-words" id="tTop"></div>
           <h3 id="tOwnTitle">Ord stavet selv (7 dage)</h3><div class="top-words" id="tOwn"></div>
+          <h3 id="tWrongTitle">Ord der ikke blev genkendt (7 dage)</h3><div class="top-words" id="tWrong"></div>
         </div>
       </div>
       <div class="dash-cols">
@@ -885,7 +999,7 @@
       <div class="set-group">
         <h3 id="studentSectionTitle">Bruger</h3>
         <div class="foot-actions">
-          <button type="button" class="btn soft" id="btnSwitchRole">👥 Skift bruger</button>
+          <button type="button" class="btn soft" id="btnSwitchRole">🚪 Log ud</button>
         </div>
         <p class="help">Indstillingerne her gemmes på enheden og bruges også i elev-tilstand.</p>
       </div>
@@ -2083,8 +2197,8 @@
       $('pauseBtnLabel').textContent = tr('Pause', 'Pause');
       $('btnPause').setAttribute('aria-label', tr('Pause tavlen', 'Pause the board'));
       btnOpenSettings.setAttribute('aria-label', ui('settings'));
-      $('lockBtnLabel').textContent = tr('Skift bruger', 'Switch user');
-      $('btnStudentLock').setAttribute('aria-label', tr('Skift bruger', 'Switch user'));
+      $('lockBtnLabel').textContent = tr('Log ud', 'Sign out');
+      $('btnStudentLock').setAttribute('aria-label', tr('Log ud', 'Sign out'));
     }
 
     // Language Change Handler
@@ -2251,10 +2365,12 @@
     const ACTIVITY_KEY = 'gazevoice_activity_v1';
     const LIVE_KEY = 'gazevoice_live_v1';
     const NAMES_KEY = 'gazevoice_names_v1';
-    const MAX_EVENTS = 5000;
+    const MAX_EVENTS = 20000;
     const activityChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('gazevoice-activity') : null;
     let currentRole = null; // null (start screen) | 'student' | 'supervisor'
     let restStartedAt = 0;
+    let lastActionAt = 0; // last time the signed-in student chose something
+    const ACTION_KINDS = ['letter', 'word', 'quick', 'sentence', 'soundout', 'delete', 'clear'];
     const roleScreen = $('roleScreen');
 
     function readActivity() {
@@ -2268,6 +2384,7 @@
     function logActivity(kind, text, extra) {
       if (currentRole !== 'student') return;
       const ev = Object.assign({ t: Date.now(), k: kind, x: text || '', l: currentLang, n: studentName }, extra || {});
+      if (ACTION_KINDS.includes(kind)) lastActionAt = ev.t;
       const list = readActivity();
       list.push(ev);
       if (list.length > MAX_EVENTS) list.splice(0, list.length - MAX_EVENTS);
@@ -2281,7 +2398,16 @@
 
     function publishLiveState() {
       if (currentRole !== 'student') return;
-      const st = { t: Date.now(), sentence: currentSentence, lang: currentLang, resting: isRestingEyes, paused: !!pausedAt, n: studentName };
+      const st = { t: Date.now(), sentence: currentSentence, lang: currentLang, resting: isRestingEyes, paused: !!pausedAt, pausedAt: pausedAt || 0, act: lastActionAt, n: studentName };
+      try { localStorage.setItem(LIVE_KEY, JSON.stringify(st)); } catch (e) {}
+      if (activityChannel) activityChannel.postMessage({ type: 'state' });
+    }
+
+    // Heartbeat: the student's device reports every 20 s, so a teacher can see who is stuck.
+    setInterval(() => { if (currentRole === 'student') publishLiveState(); }, 20000);
+
+    function publishSignedOut() {
+      const st = { t: Date.now(), sentence: currentSentence, lang: currentLang, ended: true, n: studentName };
       try { localStorage.setItem(LIVE_KEY, JSON.stringify(st)); } catch (e) {}
       if (activityChannel) activityChannel.postMessage({ type: 'state' });
     }
@@ -2304,6 +2430,7 @@
       teacherView.hidden = role !== 'supervisor';
       if (role === 'student') {
         [settingsModal, quickWordsModal].forEach(closeModal);
+        lastActionAt = Date.now();
         logActivity('session', studentName);
         publishLiveState();
       } else {
@@ -2318,13 +2445,14 @@
     }
 
     function showRoleScreen() {
+      if (currentRole === 'student') publishSignedOut();
       [settingsModal, quickWordsModal].forEach(closeModal);
       resetPause();
       teacherView.hidden = true;
       if (!recordModal.hidden) closeRecordModal();
       currentRole = null;
       document.body.classList.remove('role-student', 'role-supervisor');
-      backToRoles();
+      resetLoginForm();
       roleScreen.hidden = false;
     }
 
@@ -2348,39 +2476,38 @@
       try { localStorage.setItem(NAMES_KEY, JSON.stringify(names)); } catch (e) {}
     }
 
-    function showNameStep(role) {
-      pendingRole = role;
-      $('roleStep').hidden = true;
-      $('nameStep').hidden = false;
-      $('nameEmo').textContent = role === 'student' ? '🧒' : '🧑‍🏫';
-      $('nameTitle').innerHTML = role === 'student'
-        ? 'Hvad hedder eleven? <span>· What is the student\'s name?</span>'
-        : 'Hvad hedder du? <span>· What is your name?</span>';
-      $('nameError').textContent = '';
-      $('nameInput').value = '';
-      const recent = readNames()[role];
-      $('nameHint').textContent = recent.length
-        ? (role === 'student' ? 'Vælg dit navn, eller skriv et nyt nedenfor. · Pick your name, or type a new one below.' : 'Vælg dit navn, eller skriv et nyt. · Pick your name, or type a new one.')
-        : (role === 'student' ? 'Skriv elevens navn. Næste gang kan eleven bare vælge sit navn. · Type the student\'s name. Next time they can just pick it.' : 'Skriv dit navn. · Type your name.');
+    /* ---------- Sign in ----------
+       Mockup: any first name works, together with the shared password AIETHICS.
+       This is not real security; a real version needs proper accounts. */
+    const MOCK_PASSWORD = 'AIETHICS';
+    let loginRole = 'student';
+
+    function setLoginRole(role) {
+      loginRole = role;
+      ['roleStudent', 'roleSupervisor'].forEach(id => $(id).setAttribute('aria-checked', String($(id).dataset.role === role)));
+      $('loginError').textContent = '';
+      renderRecentNames();
+    }
+
+    function renderRecentNames() {
+      const recent = readNames()[loginRole];
       const box = $('recentNames');
       box.innerHTML = '';
       box.hidden = recent.length === 0;
-      recent.forEach((name, i) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'name-btn gaze-target';
-        btn.style.setProperty('--hue', `var(--${QUICK_HUES[i % QUICK_HUES.length]})`);
-        btn.textContent = name;
-        attachDwellListeners(btn, () => enterAs(role, name));
-        box.appendChild(btn);
+      recent.forEach(name => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'name-chip';
+        chip.textContent = name;
+        chip.addEventListener('click', () => { $('loginName').value = name; $('loginPassword').focus(); });
+        box.appendChild(chip);
       });
-      if (!recent.length) setTimeout(() => $('nameInput').focus(), 60);
     }
 
-    function backToRoles() {
-      pendingRole = null;
-      $('nameStep').hidden = true;
-      $('roleStep').hidden = false;
+    function resetLoginForm() {
+      $('loginPassword').value = '';
+      $('loginError').textContent = '';
+      setLoginRole(loginRole);
     }
 
     function enterAs(role, rawName) {
@@ -2393,15 +2520,29 @@
       showBlendBanner(`👋 ${tr('Hej', 'Hi')} <strong>${escapeHtml(name)}</strong>!`);
     }
 
-    $('nameForm').addEventListener('submit', (e) => {
+    $('loginForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const value = $('nameInput').value.trim();
-      if (!value) { $('nameError').textContent = 'Skriv et navn for at starte. · Type a name to start.'; return; }
-      enterAs(pendingRole, value);
+      const raw = $('loginName').value.trim().replace(/\s+/g, ' ');
+      const password = $('loginPassword').value.trim();
+      if (!/^[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ' -]{1,29}$/.test(raw)) {
+        $('loginError').textContent = 'Skriv dit fornavn med bogstaver (mindst 2). · Type your first name in letters (at least 2).';
+        $('loginName').focus();
+        return;
+      }
+      if (password.toUpperCase() !== MOCK_PASSWORD) {
+        $('loginError').textContent = 'Forkert adgangskode. Prøv igen. · Wrong password. Try again.';
+        $('loginPassword').value = '';
+        $('loginPassword').focus();
+        return;
+      }
+      // Same spelling every time, so "emma" and "Emma" are the same student
+      const name = raw.split(/([ -])/).map(part => part.length > 1 ? part[0].toLocaleUpperCase('da-DK') + part.slice(1).toLocaleLowerCase('da-DK') : part.toLocaleUpperCase('da-DK')).join('');
+      $('loginPassword').value = '';
+      $('loginError').textContent = '';
+      enterAs(loginRole, name);
     });
-    $('btnNameBack').addEventListener('click', backToRoles);
-    attachDwellListeners($('roleStudent'), () => showNameStep('student'));
-    attachDwellListeners($('roleSupervisor'), () => showNameStep('supervisor'));
+    attachDwellListeners($('roleStudent'), () => setLoginRole('student'));
+    attachDwellListeners($('roleSupervisor'), () => setLoginRole('supervisor'));
     $('btnStudentLock').addEventListener('click', showRoleScreen);
     $('btnSwitchRole').addEventListener('click', showRoleScreen);
 
@@ -2470,28 +2611,65 @@
 
     /* ---------- Teacher view: observe every student ----------
        Parents and teachers do not use the board. They see every student who
-       has used this device, what each one is doing right now, and simple
-       observations that help adapt the teaching to each child. */
+       has used this device, ranked by who needs help most, with simple
+       measures (KPIs) and graphs of each student's development. */
     const teacherView = $('teacherView');
     const NOTES_KEY = 'gazevoice_notes_v1';
+    const DAY = 86400000;
     let teacherStudent = null; // null = overview; otherwise the student's name ('' = no name)
     const KIND_ICON = { letter: '🔤', word: '💬', quick: '⚡', sentence: '🔊', soundout: '🎶', delete: '⌫', clear: '🗑️', rest: '💤', session: '▶️', pause: '⏸️', resume: '▶️' };
     const dashLocale = () => (currentLang === 'da' ? 'da-DK' : 'en-GB');
     const dayStart = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
     const nameLabel = (n) => (n ? n : tr('Uden navn', 'No name'));
     const fmtNum = (v) => v.toLocaleString(dashLocale(), { maximumFractionDigits: 1 });
+    const fmtSec = (v) => (v >= 90 ? `${fmtNum(v / 60)} min` : `${fmtNum(Math.round(v * 10) / 10)} s`);
+    const fmtPct = (v) => `${Math.round(v * 100)} %`;
     const median = (arr) => {
       if (!arr.length) return 0;
       const s = [...arr].sort((a, b) => a - b);
       const m = Math.floor(s.length / 2);
       return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
     };
+    const mean = (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0);
+    const letterCount = (w) => String(w || '').replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g, '').length;
+
+    // Words the app recognises when it checks spelling: everyday Danish and English
+    // words plus the app's own word lists and quick words. Not a full dictionary.
+    const COMMON_WORDS = (
+      'JEG DU HAN HUN DET DEN VI DE MIG DIG OS DEM MIN DIN SIN VORES DERES ER VAR HAR HAVDE VIL KAN SKAL MÅ GÅ GIK KOMME KOM SE SER SIGE SIGER GØRE GØR GIVE GIV TAGE TAG ' +
+      'SPISE SPISER DRIKKE DRIKKER SOVE SOVER LEGE LEGER LØBE LØBER HOPPE SPILLE SYNGE DANSE TEGNE LÆSE SKRIVE HØRE LYTTE KIGGE TALE GRINE GRÆDE HJÆLPE VENTE ' +
+      'STOP MERE IKKE OG ELLER MEN AT EN ET TIL FRA MED PÅ UD IND OP NED OVER UNDER HER DER HVOR HVAD HVEM HVORFOR HVORDAN HVORNÅR NU NÅR SÅ OGSÅ MEGET LIDT ' +
+      'GOD GODT STOR STORT LILLE NY GAMMEL VARM KOLD GLAD TRIST SUR VRED TRÆT SULTEN TØRSTIG SYG ONDT RAR SJOV SØD FIN FLOT JA NEJ TAK HEJ FARVEL UNDSKYLD ' +
+      'MOR FAR BROR SØSTER MORMOR MORFAR FARMOR FARFAR BARN BØRN VEN VENNER LÆRER SKOLE KLASSE HJEM HUS STUE KØKKEN SENG BAD TOILET DØR VINDUE BORD STOL LAMPE ' +
+      'BOG BØGER PAPIR BLYANT FARVE BOLD DUKKE BIL BUS TOG CYKEL BÅD FLY VEJ BY PARK HAVE TRÆ BLOMST GRÆS SOL MÅNE STJERNE REGN SNE VIND HIMMEL ' +
+      'VAND MÆLK JUICE TE KAFFE MAD BRØD OST SMØR ÆG KAGE IS ÆBLE BANAN PÆRE APPELSIN JORDBÆR GULEROD KARTOFFEL PIZZA SUPPE ' +
+      'KAT HUND HEST KO GRIS FÅR GED HØNE AND FISK FUGL MUS LØVE ABE ELEFANT ZEBRA HVAL UGLE RÆV BJØRN DELFIN ' +
+      'HOVED ØJE ØJNE ØRE NÆSE MUND TAND TÆNDER HÅND HÆNDER FOD FØDDER ARM BEN MAVE HJERTE HJUL SKIB SKO TØJ JAKKE HUE BUKSER TRØJE KJOLE ' +
+      'RØD BLÅ GUL GRØN SORT HVID LILLA ORANGE BRUN TO TRE FIRE FEM SEKS SYV OTTE NI TI DAG NAT MORGEN AFTEN MUSIK SANG LEG SPIL TELEFON HVID HVAL HJÆLP ' +
+      'YOU HE SHE IT WE THEY ME MY YOUR IS AM ARE WAS HAVE HAS CAN WILL DO GO GOING COME SEE LOOK WANT LIKE LOVE NEED HELP PLAY EAT DRINK SLEEP RUN JUMP ' +
+      'READ WRITE SING DANCE DRAW TALK SAY STOP MORE NOT AND OR BUT THE AN TO FROM WITH ON IN OUT UP DOWN HERE THERE WHERE WHAT WHO WHY HOW WHEN NOW ' +
+      'YES NO PLEASE THANK THANKS HELLO HI BYE GOOD BAD BIG SMALL LITTLE HOT COLD HAPPY SAD ANGRY TIRED HUNGRY THIRSTY SICK HURT FUN NICE ' +
+      'MUM MOM DAD BROTHER SISTER BABY FRIEND TEACHER SCHOOL CLASS HOME HOUSE ROOM BED BATH TOILET DOOR WINDOW TABLE CHAIR BOOK PAPER PEN COLOUR COLOR ' +
+      'BALL TOY CAR BUS TRAIN BIKE BOAT PLANE ROAD PARK TREE FLOWER SUN MOON STAR RAIN SNOW SKY WATER MILK JUICE TEA FOOD BREAD CHEESE EGG CAKE ICE ' +
+      'APPLE BANANA PIZZA SOUP CAT DOG HORSE COW PIG SHEEP GOAT HEN DUCK FISH BIRD MOUSE LION MONKEY ELEPHANT ZEBRA WHALE OWL FOX BEAR ' +
+      'HEAD EYE EYES EAR NOSE MOUTH TOOTH HAND FOOT ARM LEG RED BLUE YELLOW GREEN BLACK WHITE PINK ORANGE BROWN ONE TWO THREE FOUR FIVE SIX SEVEN EIGHT NINE TEN ' +
+      'DAY NIGHT MORNING MUSIC SONG GAME PHONE HAT SHOE SHOES COAT SHIP SHOP CHIP CHAT THIN THAT THIS THEN SEA TREE MOON SOON'
+    ).split(' ');
+    const KNOWN_WORDS = new Set([
+      ...COMMON_WORDS, ...Object.keys(danishWords), ...Object.keys(englishWords),
+      ...danishDefaultQuickWords.flatMap(q => q.text.split(' ')), ...englishDefaultQuickWords.flatMap(q => q.text.split(' '))
+    ].map(w => w.toUpperCase()));
+    function isKnownWord(w) {
+      const word = String(w || '').trim().toUpperCase();
+      if (word.length < 2) return true;
+      return KNOWN_WORDS.has(word) || quickWords.some(q => q.text.toUpperCase().split(' ').includes(word));
+    }
 
     function describeEvent(ev) {
       const x = escapeHtml(ev.x || '');
       switch (ev.k) {
         case 'letter': return tr(`Valgte bogstavet <b>${x}</b>`, `Chose the letter <b>${x}</b>`) + (ev.b ? tr(` (lydsammenfald ${escapeHtml(ev.b)})`, ` (blend ${escapeHtml(ev.b)})`) : '');
-        case 'word': return tr(`Skrev ordet <b>${x}</b>`, `Wrote the word <b>${x}</b>`) + (ev.via === 'read' ? tr(' og læste det højt', ' and read it out loud') : ev.via === 'idea' ? tr(' med et ordforslag', ' using a suggestion') : '');
+        case 'word': return tr(`Skrev ordet <b>${x}</b>`, `Wrote the word <b>${x}</b>`) + (ev.via === 'read' ? tr(' og læste det højt', ' and read it out loud') : ev.via === 'idea' ? tr(' med et ordforslag', ' using a suggestion') : '') + (ev.via !== 'idea' && !isKnownWord(ev.x) ? tr(' (ikke genkendt)', ' (not recognised)') : '');
         case 'quick': return tr(`Kerneord: <b>${x}</b>`, `Quick word: <b>${x}</b>`);
         case 'sentence': return tr(`Læste sætningen: <b>${x}</b>`, `Read the sentence: <b>${x}</b>`);
         case 'soundout': return tr(`Lydede ordet <b>${x}</b>`, `Sounded out <b>${x}</b>`);
@@ -2525,33 +2703,213 @@
     function eventsFor(name, all) { return (all || readActivity()).filter(e => (e.n || '') === name); }
 
     function studentsOnDevice(all) {
-      const last = new Map();
-      all.forEach(e => { const n = e.n || ''; last.set(n, Math.max(last.get(n) || 0, e.t)); });
-      readNames().student.forEach(n => { if (!last.has(n)) last.set(n, 0); });
-      return [...last.entries()].sort((a, b) => b[1] - a[1]).map(([name, lastT]) => ({ name, lastT }));
+      const info = new Map();
+      all.forEach(e => {
+        const n = e.n || '';
+        const cur = info.get(n) || { lastT: 0, demo: true };
+        cur.lastT = Math.max(cur.lastT, e.t);
+        if (!e.d) cur.demo = false;
+        info.set(n, cur);
+      });
+      readNames().student.forEach(n => { if (!info.has(n)) info.set(n, { lastT: 0, demo: false }); });
+      return [...info.entries()].map(([name, v]) => ({ name, lastT: v.lastT, demo: v.demo }));
     }
 
+    // Live status from the student's device: active, stuck, paused, resting or not signed in.
     function liveStatusFor(name, events) {
       const live = readLiveState();
       const mine = live && (live.n || '') === name ? live : null;
+      const now = Date.now();
       const lastEvent = events.length ? events[events.length - 1].t : 0;
       const lastT = Math.max(lastEvent, mine && mine.t ? mine.t : 0);
-      const recent = lastT > 0 && Date.now() - lastT < 60000;
-      let state = 'idle';
-      if (mine && mine.paused && Date.now() - mine.t < 30 * 60000) state = 'paused';
-      else if (recent && mine && mine.resting) state = 'resting';
-      else if (recent) state = 'live';
-      return { state, lastT, sentence: mine && typeof mine.sentence === 'string' ? mine.sentence : '' };
+      const online = !!(mine && !mine.ended && now - mine.t < 60000);
+      let state = 'idle', idleFor = 0, pausedFor = 0;
+      if (online && mine.paused) { state = 'paused'; pausedFor = mine.pausedAt ? now - mine.pausedAt : 0; }
+      else if (online && mine.resting) state = 'resting';
+      else if (online) {
+        const act = mine.act || lastEvent || mine.t;
+        idleFor = now - act;
+        state = idleFor >= 120000 ? 'stuck' : 'live';
+      }
+      return { state, lastT, idleFor, pausedFor, sentence: mine && typeof mine.sentence === 'string' ? mine.sentence : '' };
     }
 
     function statusChip(st) {
       if (st.state === 'live') return `<span class="s-status live"><span class="live-dot on"></span>${tr('Aktiv nu', 'Active now')}</span>`;
-      if (st.state === 'paused') return `<span class="s-status paused">⏸ ${tr('På pause', 'Paused')}</span>`;
+      if (st.state === 'stuck') return `<span class="s-status stuck">⚠ ${tr(`Ingen valg i ${Math.round(st.idleFor / 60000)} min.`, `No choices for ${Math.round(st.idleFor / 60000)} min`)}</span>`;
+      if (st.state === 'paused') return `<span class="s-status paused">⏸ ${tr('På pause', 'Paused')}${st.pausedFor >= 60000 ? ` ${Math.round(st.pausedFor / 60000)} min.` : ''}</span>`;
       if (st.state === 'resting') return `<span class="s-status resting">💤 ${tr('Hviler øjnene', 'Resting the eyes')}</span>`;
       return `<span class="s-status">${st.lastT ? tr('Sidst aktiv ', 'Last active ') + agoText(st.lastT) : tr('Ingen aktivitet endnu', 'No activity yet')}</span>`;
     }
 
-    // Seconds between letter choices (gaps over a minute, pauses and new sessions are left out)
+    /* ---- Measures (KPIs) from the activity log ----
+       Time per word: from the first letter of a word until the word is finished.
+       Gap between letters: time between two letters in the same word.
+       Gap before a new word: time from finishing a word to the first letter of the next.
+       Breaks: pauses, eye rests, and any 30 s or longer without a choice.
+       Spelled correctly: share of words the student spelled themselves that the app recognises. */
+    function analyse(events) {
+      const a = { wordTimes: [], letterGaps: [], newWordGaps: [], breaks: [], spelled: [], used: [], written: [], deletes: [], days: new Set() };
+      let wordStart = 0, lastLetter = 0, lastWordEnd = 0, lastAction = 0, inPause = false;
+      for (const e of events) {
+        a.days.add(dayStart(new Date(e.t)));
+        if (e.k === 'session') { wordStart = 0; lastLetter = 0; lastWordEnd = 0; lastAction = e.t; inPause = false; continue; }
+        if (e.k === 'resume') { inPause = false; a.breaks.push({ t: e.t, s: parseInt(e.x, 10) || 0 }); lastAction = e.t; lastLetter = 0; lastWordEnd = 0; continue; }
+        if (e.k === 'rest') {
+          const restMs = (parseInt(e.x, 10) || 0) * 1000;
+          a.breaks.push({ t: e.t, s: restMs / 1000 });
+          // Time spent in the rest zone counts as a break, not as part of the next gap
+          if (lastWordEnd) lastWordEnd = Math.min(e.t, lastWordEnd + restMs);
+          if (lastLetter) lastLetter = Math.min(e.t, lastLetter + restMs);
+          lastAction = e.t;
+          continue;
+        }
+        if (!inPause && lastAction && e.t - lastAction >= 30000 && e.t - lastAction < 30 * 60000) {
+          a.breaks.push({ t: e.t, s: Math.round((e.t - lastAction) / 1000) });
+        }
+        lastAction = e.t;
+        if (e.k === 'pause') { inPause = true; lastLetter = 0; lastWordEnd = 0; continue; }
+        if (e.k === 'letter') {
+          if (!wordStart) {
+            wordStart = e.t;
+            if (lastWordEnd && e.t - lastWordEnd < 10 * 60000) a.newWordGaps.push({ t: e.t, s: (e.t - lastWordEnd) / 1000 });
+          } else if (lastLetter && e.t - lastLetter < 5 * 60000) {
+            a.letterGaps.push({ t: e.t, s: (e.t - lastLetter) / 1000 });
+          }
+          lastLetter = e.t;
+        } else if (e.k === 'word') {
+          const w = String(e.x || '').trim();
+          if (wordStart && e.t - wordStart < 15 * 60000) a.wordTimes.push({ t: e.t, s: (e.t - wordStart) / 1000 });
+          a.used.push({ t: e.t, w });
+          a.written.push(e.t);
+          if (e.via === 'read' || e.via === 'space') a.spelled.push({ t: e.t, w, ok: isKnownWord(w) });
+          wordStart = 0; lastLetter = 0; lastWordEnd = e.t;
+        } else if (e.k === 'quick') {
+          String(e.x || '').split(' ').filter(Boolean).forEach(w => a.used.push({ t: e.t, w }));
+          wordStart = 0; lastLetter = 0; lastWordEnd = e.t;
+        } else if (e.k === 'clear') {
+          wordStart = 0; lastLetter = 0;
+        } else if (e.k === 'delete') {
+          a.deletes.push(e.t);
+        }
+      }
+      return a;
+    }
+
+    function dayMetrics(a, from, to) {
+      const inRange = (x) => x.t >= from && x.t < to;
+      const wt = a.wordTimes.filter(inRange).map(x => x.s);
+      const lg = a.letterGaps.filter(inRange).map(x => x.s);
+      const ng = a.newWordGaps.filter(inRange).map(x => x.s);
+      const br = a.breaks.filter(inRange).map(x => x.s);
+      const sp = a.spelled.filter(inRange);
+      const used = a.used.filter(inRange);
+      const deletes = a.deletes.filter(t => t >= from && t < to).length;
+      const wrong = sp.filter(x => !x.ok).length;
+      const written = a.written.filter(t => t >= from && t < to).length;
+      const active = [...a.days].some(d => d >= from && d < to) && (wt.length + lg.length + used.length + deletes + br.length > 0);
+      return {
+        active,
+        wordTime: wt.length ? median(wt) : null,
+        letterGap: lg.length ? median(lg) : null,
+        newWordGap: ng.length ? median(ng) : null,
+        breakLen: active ? (br.length ? mean(br) : 0) : null,
+        breaks: br.length,
+        correct: sp.length ? (sp.length - wrong) / sp.length : null,
+        spelledCount: sp.length,
+        wrongWords: wrong,
+        deletes,
+        mistakes: active ? deletes + wrong : null,
+        written,
+        mistakeRate: active && written ? (deletes + wrong) / written * 10 : null,
+        wordsUsed: active ? used.length : null,
+        longWords: active ? used.filter(x => letterCount(x.w) > 4).length : null
+      };
+    }
+
+    // The student's usual level: median of their daily values over the 14 days before today.
+    function baselineMetrics(a, today0) {
+      const days = [];
+      for (let i = 1; i <= 14; i++) {
+        const m = dayMetrics(a, today0 - i * DAY, today0 - (i - 1) * DAY);
+        if (m.active) days.push(m);
+      }
+      const pick = (key) => { const v = days.map(d => d[key]).filter(x => x !== null && x !== undefined); return v.length >= 2 ? median(v) : null; };
+      return { wordTime: pick('wordTime'), letterGap: pick('letterGap'), newWordGap: pick('newWordGap'), breakLen: pick('breakLen'), correct: pick('correct'), days: days.length };
+    }
+
+    const KPI_DEFS = [
+      { key: 'wordTime', label: () => tr('Tid pr. ord', 'Time per word'), fmt: fmtSec, highIsBad: true, fallback: 45 },
+      { key: 'letterGap', label: () => tr('Pause mellem bogstaver', 'Gap between letters'), fmt: fmtSec, highIsBad: true, fallback: 12 },
+      { key: 'newWordGap', label: () => tr('Pause før nyt ord', 'Gap before a new word'), fmt: fmtSec, highIsBad: true, fallback: 30 },
+      { key: 'breakLen', label: () => tr('Pauselængde', 'Break length'), fmt: fmtSec, highIsBad: true, fallback: 120 },
+      { key: 'correct', label: () => tr('Korrekt stavet', 'Spelled correctly'), fmt: fmtPct, highIsBad: false }
+    ];
+
+    // Ranking: transparent points for each sign that a student may need help today.
+    function urgencyFor(events) {
+      const name = events.length ? (events[0].n || '') : '';
+      const st = liveStatusFor(name, events);
+      const a = analyse(events);
+      const today0 = dayStart(new Date());
+      const today = dayMetrics(a, today0, today0 + DAY);
+      const base = baselineMetrics(a, today0);
+      const reasons = [];
+      const flags = {};
+      let score = 0;
+      const add = (pts, text, key) => { score += pts; reasons.push({ pts, text }); if (key) flags[key] = true; };
+
+      if (st.state === 'stuck') add(4, tr(`Ingen valg i ${Math.round(st.idleFor / 60000)} min.`, `No choices for ${Math.round(st.idleFor / 60000)} min`));
+      if (st.state === 'paused' && st.pausedFor >= 5 * 60000) add(2, tr(`På pause i ${Math.round(st.pausedFor / 60000)} min.`, `Paused for ${Math.round(st.pausedFor / 60000)} min`));
+
+      const names = { wordTime: tr('Langsommere ord', 'Slower words'), letterGap: tr('Lange pauser mellem bogstaver', 'Long gaps between letters'), newWordGap: tr('Lang tid før nyt ord', 'Long wait before new words'), breakLen: tr('Lange pauser', 'Long breaks') };
+      ['wordTime', 'letterGap', 'newWordGap', 'breakLen'].forEach(key => {
+        const v = today[key], b = base[key];
+        if (v === null || v === undefined) return;
+        const def = KPI_DEFS.find(d => d.key === key);
+        if (b) {
+          const r = b > 0 ? v / b : 1;
+          if (r >= 1.5) add(2, `${names[key]} (${def.fmt(v)}, ${tr('normalt', 'usually')} ${def.fmt(b)})`, key);
+          else if (r >= 1.25) add(1, `${names[key]} (${def.fmt(v)}, ${tr('normalt', 'usually')} ${def.fmt(b)})`, key);
+        } else if (v > def.fallback) {
+          add(1, `${names[key]} (${def.fmt(v)})`, key);
+        }
+      });
+      if (today.correct !== null && today.spelledCount >= 3) {
+        if (today.correct < 0.6) add(2, tr(`Mange stavefejl (${fmtPct(today.correct)} korrekt)`, `Many spelling mistakes (${fmtPct(today.correct)} correct)`), 'correct');
+        else if (today.correct < 0.8) add(1, tr(`Nogle stavefejl (${fmtPct(today.correct)} korrekt)`, `Some spelling mistakes (${fmtPct(today.correct)} correct)`), 'correct');
+        if (base.correct !== null && base.correct - today.correct >= 0.2) add(1, tr(`Færre korrekte ord end normalt (${fmtPct(base.correct)})`, `Fewer correct words than usual (${fmtPct(base.correct)})`), 'correct');
+      }
+
+      let level = score >= 4 ? 'urgent' : score >= 2 ? 'watch' : 'ok';
+      if (!today.active && st.state === 'idle') level = 'none';
+      reasons.sort((x, y) => y.pts - x.pts);
+      return { name, st, today, base, score, level, reasons, flags, a };
+    }
+
+    const LEVEL_ORDER = { urgent: 0, watch: 1, ok: 2, none: 3 };
+    function levelChip(level) {
+      const map = {
+        urgent: ['urgent', '⚠', tr('Hjælp nu', 'Help now')],
+        watch: ['watch', '◐', tr('Hold øje', 'Keep an eye')],
+        ok: ['ok', '✓', tr('Godt på vej', 'On track')],
+        none: ['none', '–', tr('Ikke aktiv i dag', 'Not active today')]
+      };
+      const [cls, icon, label] = map[level];
+      return `<span class="lvl ${cls}"><span aria-hidden="true">${icon}</span> ${label}</span>`;
+    }
+
+    function kpiCells(u, withLabels) {
+      return KPI_DEFS.map(def => {
+        const v = u.today[def.key], b = u.base[def.key];
+        const value = v === null || v === undefined ? '–' : def.fmt(v);
+        const usual = b === null || b === undefined ? '' : `${tr('normalt', 'usually')} ${def.fmt(b)}`;
+        const dir = b === null || b === undefined ? (def.highIsBad ? 'up' : 'down') : (v > b ? 'up' : 'down');
+        return `<span class="r-kpi${u.flags[def.key] ? ' flag ' + dir : ''}" data-label="${escapeHtml(def.label())}">${withLabels ? `<span class="k-label">${def.label()}</span>` : ''}<b>${value}</b><small>${usual}</small></span>`;
+      }).join('');
+    }
+
+    // Simple, transparent observations. They are hints for the teacher, not a diagnosis.
     function letterGaps(events) {
       const gaps = [];
       let prev = 0;
@@ -2562,20 +2920,17 @@
       return gaps;
     }
 
-    // Simple, transparent observations. They are hints for the teacher, not a diagnosis.
     function buildInsights(events) {
       const today0 = dayStart(new Date());
-      const week0 = today0 - 7 * 86400000;
+      const week0 = today0 - 7 * DAY;
       const today = events.filter(e => e.t >= today0);
       const before = events.filter(e => e.t >= week0 && e.t < today0);
       const s = summarize(today);
       const out = [];
-
       if (!today.length) {
         out.push({ tone: 'info', icon: '📅', title: tr('Ingen aktivitet i dag', 'No activity today'),
-          text: before.length ? tr('De seneste 7 dage ses nedenfor.', 'The last 7 days are shown below.') : tr('Når eleven bruger tavlen, vises observationer her.', 'Observations appear here once the student uses the board.') });
+          text: before.length ? tr('Udviklingen ses i graferne ovenfor.', 'The development is shown in the graphs above.') : tr('Når eleven bruger tavlen, vises observationer her.', 'Observations appear here once the student uses the board.') });
       }
-
       const gT = letterGaps(today), gB = letterGaps(before);
       if (gT.length >= 5) {
         const mt = median(gT), mb = gB.length >= 5 ? median(gB) : 0;
@@ -2586,7 +2941,6 @@
         out.push({ tone, icon: '⏱️', title: tr('Tempo', 'Pace'), text,
           tip: tone === 'note' ? tr('Eleven kan være træt, eller opgaven kan være for svær i dag.', 'The student may be tired, or the task may be too hard today.') : '' });
       }
-
       if (s.letters >= 10) {
         const rate = s.deletes / s.letters;
         const pct = Math.round(rate * 100);
@@ -2600,17 +2954,15 @@
             tip: rate < 0.1 && dwellDuration > 800 ? tr('Eleven kan måske klare en kortere kiggetid.', 'The student may manage a shorter look time.') : '' });
         }
       }
-
       const week = events.filter(e => e.t >= week0);
       const delCounts = new Map();
       week.filter(e => e.k === 'delete' && e.x && e.x.trim()).forEach(e => delCounts.set(e.x, (delCounts.get(e.x) || 0) + 1));
-      const hard = [...delCounts.entries()].filter(([, c]) => c >= 2).sort((a, b) => b[1] - a[1]).slice(0, 4);
+      const hard = [...delCounts.entries()].filter(([, c]) => c >= 2).sort((x, y) => y[1] - x[1]).slice(0, 4);
       if (hard.length) {
         out.push({ tone: 'note', icon: '🔤', title: tr('Bogstaver der ofte slettes (7 dage)', 'Letters often deleted (7 days)'),
           text: hard.map(([l, c]) => `<b>${escapeHtml(l)}</b> ${c}×`).join(', '),
           tip: tr('Øv disse lyde med Lydord, eller optag tydelige lyde til dem under Indstillinger.', 'Practise these sounds with Flow Sounds, or record clear sounds for them in Settings.') });
       }
-
       const breaks = s.pauses + s.rests;
       const pausedSec = today.filter(e => e.k === 'resume').reduce((sum, e) => sum + (parseInt(e.x, 10) || 0), 0);
       if (breaks >= 4 || pausedSec >= 300) {
@@ -2618,7 +2970,6 @@
           text: tr(`${breaks} pauser og hvil, ${Math.round(pausedSec / 60)} min. på pause.`, `${breaks} pauses and rests, ${Math.round(pausedSec / 60)} min paused.`),
           tip: tr('Kortere sessioner eller planlagte pauser kan hjælpe.', 'Shorter sessions or planned breaks may help.') });
       }
-
       const words = today.filter(e => e.k === 'word');
       const spelled = words.filter(e => e.via === 'read' || e.via === 'space').length;
       const helped = words.filter(e => e.via === 'idea').length + s.quick;
@@ -2632,7 +2983,6 @@
             text: tr(`${spelled} ord stavet selv i dag.`, `${spelled} words spelled independently today.`), tip: '' });
         }
       }
-
       if (s.soundouts >= 3) {
         out.push({ tone: 'good', icon: '🎶', title: tr('Lytter til lydene', 'Listens to the sounds'),
           text: tr(`Brugte Lydord ${s.soundouts} gange i dag.`, `Used Flow Sounds ${s.soundouts} times today.`), tip: '' });
@@ -2644,24 +2994,215 @@
       return out;
     }
 
+    /* ---- Development graphs (last 14 days) ----
+       Small multiples: one line chart per measure, one series each, so the title names it.
+       Days without activity leave a gap. Hover, tap or arrow keys show each day's value. */
+    const CHART_DAYS = 14;
+    const CH = { w: 340, h: 172, l: 38, r: 46, t: 14, b: 28 };
+    const CHART_DEFS = [
+      { key: 'wordTime', axis: 'sec', title: () => tr('Stavetid pr. ord', 'Spelling time per word'), sub: () => tr('Sekunder, median pr. dag · lavere er bedre', 'Seconds, daily median · lower is better'), fmt: fmtSec, lowIsGood: true },
+      { key: 'mistakeRate', title: () => tr('Stavefejl pr. 10 ord', 'Spelling mistakes per 10 words'), sub: () => tr('Rettede bogstaver + ord der ikke genkendes · lavere er bedre', 'Corrected letters + unrecognised words · lower is better'), fmt: (v) => fmtNum(Math.round(v * 10) / 10), lowIsGood: true },
+      { key: 'breakLen', axis: 'sec', title: () => tr('Pauselængde', 'Break length'), sub: () => tr('Gennemsnitlig pause pr. dag · kortere er bedre', 'Average break per day · shorter is better'), fmt: fmtSec, lowIsGood: true },
+      { key: 'wordsUsed', title: () => tr('Ord brugt', 'Words used'), sub: () => tr('Antal ord pr. dag · flere er bedre', 'Words per day · more is better'), fmt: (v) => fmtNum(v), lowIsGood: false },
+      { key: 'longWords', title: () => tr('Ord med mere end 4 bogstaver', 'Words with more than 4 letters'), sub: () => tr('Antal pr. dag · flere er bedre', 'Per day · more is better'), fmt: (v) => fmtNum(v), lowIsGood: false }
+    ];
+    let chartData = [];   // [{ def, points: [{ day, v }] }] for the open student
+    let chartSignature = '';
+
+    const SEC_STEPS = [5, 10, 20, 30, 40, 60, 90, 120, 180, 240, 300, 600, 900, 1200, 1800, 3600];
+    const fmtAxisSec = (v) => (v < 120 ? `${Math.round(v * 10) / 10} s`.replace('.', ',') : `${fmtNum(v / 60)} min`);
+    function chartMax(points, def) {
+      const top = Math.max(...points.map(p => p.v).filter(v => v !== null)) * 1.08;
+      if (def.axis === 'sec') return SEC_STEPS.find(x => x >= top) || niceMax(top);
+      return niceMax(top);
+    }
+    function niceMax(v) {
+      if (!(v > 0)) return 1;
+      const p = Math.pow(10, Math.floor(Math.log10(v)));
+      for (const m of [1, 2, 2.5, 5, 10]) if (m * p >= v) return m * p;
+      return 10 * p;
+    }
+    const cx = (i, W) => CH.l + i * ((W || CH.w) - CH.l - CH.r) / (CHART_DAYS - 1);
+    const cy = (v, max) => CH.t + (1 - v / max) * (CH.h - CH.t - CH.b);
+    const shortDate = (t) => new Date(t).toLocaleDateString(dashLocale(), { day: 'numeric', month: 'numeric' });
+
+    function chartSvg(points, def, idx, W) {
+      W = Math.max(240, Math.round(W || CH.w));
+      const vals = points.map(p => p.v).filter(v => v !== null);
+      const title = def.title();
+      if (!vals.length) return `<p class="empty-note">${tr('Ingen data endnu.', 'No data yet.')}</p>`;
+      const max = chartMax(points, def);
+      const base = cy(0, max);
+      let svg = `<svg class="chart" viewBox="0 0 ${W} ${CH.h}" width="${W}" height="${CH.h}" role="img" tabindex="0" data-chart="${idx}" data-w="${W}" aria-label="${escapeHtml(title)}: ${escapeHtml(tr('brug piletasterne for at se hver dag', 'use the arrow keys to read each day'))}">`;
+      [0, max / 2, max].forEach(tv => {
+        const y = cy(tv, max);
+        const label = def.axis === 'sec' ? fmtAxisSec(tv) : fmtNum(tv);
+        svg += `<line class="c-grid" x1="${CH.l}" x2="${W - CH.r}" y1="${y}" y2="${y}"/><text class="c-tick" x="${CH.l - 6}" y="${y + 4}" text-anchor="end">${escapeHtml(label)}</text>`;
+      });
+      [0, Math.floor((CHART_DAYS - 1) / 2), CHART_DAYS - 1].forEach(i => {
+        svg += `<text class="c-tick" x="${cx(i, W)}" y="${CH.h - 8}" text-anchor="middle">${escapeHtml(i === CHART_DAYS - 1 ? tr('I dag', 'Today') : shortDate(points[i].day))}</text>`;
+      });
+      // Runs of consecutive days with data: a wash underneath and a 2px line on top.
+      const runs = [];
+      let run = [];
+      points.forEach((p, i) => { if (p.v === null) { if (run.length) runs.push(run); run = []; } else run.push(i); });
+      if (run.length) runs.push(run);
+      runs.filter(r => r.length > 1).forEach(r => {
+        const line = r.map((i, j) => `${j ? 'L' : 'M'}${cx(i, W).toFixed(1)} ${cy(points[i].v, max).toFixed(1)}`).join(' ');
+        svg += `<path class="c-area" d="${line} L${cx(r[r.length - 1], W).toFixed(1)} ${base} L${cx(r[0], W).toFixed(1)} ${base} Z"/><path class="c-line" d="${line}"/>`;
+      });
+      points.forEach((p, i) => { if (p.v !== null) svg += `<circle class="c-dot" cx="${cx(i, W).toFixed(1)}" cy="${cy(p.v, max).toFixed(1)}" r="4"/>`; });
+      const lastI = points.map(p => p.v !== null).lastIndexOf(true);
+      svg += `<text class="c-end" x="${cx(lastI, W) + 8}" y="${cy(points[lastI].v, max) + 4}">${escapeHtml(def.fmt(points[lastI].v))}</text>`;
+      svg += `<line class="c-cross" x1="0" x2="0" y1="${CH.t}" y2="${base}" visibility="hidden"/><circle class="c-hover" r="6" cx="0" cy="0" visibility="hidden"/>`;
+      svg += `<rect class="c-hit" x="${CH.l - 10}" y="0" width="${W - CH.l - CH.r + 20}" height="${CH.h}" fill="transparent"/></svg>`;
+      return svg + `<div class="chart-tip" hidden></div>`;
+    }
+
+    function trendText(points, def) {
+      const withData = points.filter(p => p.v !== null);
+      if (withData.length < 4) return tr('For få dage til at vise en udvikling endnu.', 'Too few days to show a development yet.');
+      const k = Math.min(3, Math.floor(withData.length / 2));
+      const first = mean(withData.slice(0, k).map(p => p.v));
+      const last = mean(withData.slice(-k).map(p => p.v));
+      if (first === 0 && last === 0) return tr('Uændret.', 'Unchanged.');
+      const change = first ? (last - first) / first : 1;
+      const better = def.lowIsGood ? last < first : last > first;
+      const pct = Math.round(Math.abs(change) * 100);
+      if (pct < 10) return tr(`Stabil: fra ${def.fmt(first)} til ${def.fmt(last)}.`, `Steady: from ${def.fmt(first)} to ${def.fmt(last)}.`);
+      return better
+        ? tr(`Bedre: fra ${def.fmt(first)} til ${def.fmt(last)} (${pct} %).`, `Better: from ${def.fmt(first)} to ${def.fmt(last)} (${pct}%).`)
+        : tr(`Dårligere: fra ${def.fmt(first)} til ${def.fmt(last)} (${pct} %).`, `Worse: from ${def.fmt(first)} to ${def.fmt(last)} (${pct}%).`);
+    }
+
+    function buildChartData(a) {
+      const today0 = dayStart(new Date());
+      const days = [];
+      for (let i = CHART_DAYS - 1; i >= 0; i--) {
+        const from = today0 - i * DAY;
+        days.push({ day: from, m: dayMetrics(a, from, from + DAY) });
+      }
+      return CHART_DEFS.map(def => ({ def, points: days.map(d => ({ day: d.day, v: d.m[def.key] === undefined ? null : d.m[def.key], m: d.m })) }));
+    }
+
+    function renderCharts(a) {
+      chartData = buildChartData(a);
+      $('tCharts').innerHTML = chartData.map((c, i) => `
+        <figure class="chart-card">
+          <figcaption><b>${escapeHtml(c.def.title())}</b><span>${escapeHtml(c.def.sub())}</span></figcaption>
+          <div class="chart-wrap" data-chart-wrap="${i}"></div>
+          <p class="chart-foot">${escapeHtml(trendText(c.points, c.def))}</p>
+        </figure>`).join('');
+      drawChartSvgs();
+      // Table view: the same numbers without hovering
+      const rows = chartData[0].points.map((p, i) => ({ day: p.day, vals: chartData.map(c => c.points[i].v) })).filter(r => r.vals.some(v => v !== null)).reverse();
+      $('tChartTable').innerHTML = `<thead><tr><th>${tr('Dag', 'Day')}</th>${chartData.map(c => `<th>${escapeHtml(c.def.title())}</th>`).join('')}</tr></thead><tbody>` +
+        (rows.length ? rows.map(r => `<tr><td>${escapeHtml(new Date(r.day).toLocaleDateString(dashLocale(), { weekday: 'short', day: 'numeric', month: 'short' }))}</td>${r.vals.map((v, j) => `<td>${v === null ? '–' : escapeHtml(chartData[j].def.fmt(v))}</td>`).join('')}</tr>`).join('')
+          : `<tr><td colspan="${chartData.length + 1}">${tr('Ingen data endnu.', 'No data yet.')}</td></tr>`) + '</tbody>';
+    }
+
+    // Draw each chart at the width of its card, so text and dots stay the same size
+    function drawChartSvgs() {
+      document.querySelectorAll('#tCharts .chart-wrap').forEach(wrap => {
+        const i = Number(wrap.dataset.chartWrap);
+        const c = chartData[i];
+        if (c) wrap.innerHTML = chartSvg(c.points, c.def, i, wrap.clientWidth || CH.w);
+      });
+    }
+    let chartResizeFrame = 0;
+    window.addEventListener('resize', () => {
+      if (currentRole !== 'supervisor' || teacherStudent === null) return;
+      cancelAnimationFrame(chartResizeFrame);
+      chartResizeFrame = requestAnimationFrame(drawChartSvgs);
+    });
+
+    function showChartPoint(svg, i) {
+      const c = chartData[Number(svg.dataset.chart)];
+      if (!c) return;
+      i = Math.max(0, Math.min(CHART_DAYS - 1, i));
+      svg.dataset.idx = String(i);
+      const p = c.points[i];
+      const max = chartMax(c.points, c.def);
+      const W = Number(svg.dataset.w) || CH.w;
+      const x = cx(i, W);
+      const cross = svg.querySelector('.c-cross');
+      const dot = svg.querySelector('.c-hover');
+      cross.setAttribute('x1', x); cross.setAttribute('x2', x); cross.setAttribute('visibility', 'visible');
+      if (p.v !== null) { dot.setAttribute('cx', x); dot.setAttribute('cy', cy(p.v, max)); dot.setAttribute('visibility', 'visible'); }
+      else dot.setAttribute('visibility', 'hidden');
+      const tip = svg.parentElement.querySelector('.chart-tip');
+      tip.textContent = '';
+      const strong = document.createElement('strong');
+      strong.textContent = p.v === null ? tr('Ingen aktivitet', 'No activity') : c.def.fmt(p.v);
+      const when = document.createElement('span');
+      when.textContent = new Date(p.day).toLocaleDateString(dashLocale(), { weekday: 'short', day: 'numeric', month: 'short' });
+      tip.append(strong, when);
+      if (c.def.key === 'mistakeRate' && p.v !== null) {
+        const detail = document.createElement('span');
+        detail.textContent = tr(`${p.m.deletes} rettelser + ${p.m.wrongWords} ukendte ord i ${p.m.written} ord`, `${p.m.deletes} corrections + ${p.m.wrongWords} unknown words in ${p.m.written} words`);
+        tip.append(detail);
+      }
+      tip.hidden = false;
+      const rect = svg.getBoundingClientRect();
+      const scale = rect.width / W;
+      const left = x * scale;
+      tip.style.left = `${Math.min(Math.max(left, 60), rect.width - 60)}px`;
+      tip.style.top = `${(p.v !== null ? cy(p.v, max) : CH.h / 2) * scale}px`;
+    }
+    function hideChartPoint(svg) {
+      svg.querySelector('.c-cross').setAttribute('visibility', 'hidden');
+      svg.querySelector('.c-hover').setAttribute('visibility', 'hidden');
+      svg.parentElement.querySelector('.chart-tip').hidden = true;
+    }
+    $('tCharts').addEventListener('pointermove', (e) => {
+      const svg = e.target.closest('svg.chart');
+      if (!svg) return;
+      const rect = svg.getBoundingClientRect();
+      const W = Number(svg.dataset.w) || CH.w;
+      const vx = (e.clientX - rect.left) / rect.width * W;
+      showChartPoint(svg, Math.round((vx - CH.l) / ((W - CH.l - CH.r) / (CHART_DAYS - 1))));
+    });
+    $('tCharts').addEventListener('pointerleave', () => document.querySelectorAll('#tCharts svg.chart').forEach(hideChartPoint), true);
+    $('tCharts').addEventListener('focusin', (e) => { const svg = e.target.closest('svg.chart'); if (svg) showChartPoint(svg, CHART_DAYS - 1); });
+    $('tCharts').addEventListener('focusout', (e) => { const svg = e.target.closest('svg.chart'); if (svg) hideChartPoint(svg); });
+    $('tCharts').addEventListener('keydown', (e) => {
+      const svg = e.target.closest('svg.chart');
+      if (!svg || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
+      e.preventDefault();
+      showChartPoint(svg, Number(svg.dataset.idx || CHART_DAYS - 1) + (e.key === 'ArrowLeft' ? -1 : 1));
+    });
+    $('tBtnChartTable').addEventListener('click', () => {
+      const wrap = $('tChartTableWrap');
+      wrap.hidden = !wrap.hidden;
+      $('tBtnChartTable').setAttribute('aria-expanded', String(!wrap.hidden));
+      renderTeacherLabels();
+    });
+
+    /* ---- Labels, overview and student page ---- */
     function renderTeacherLabels() {
       $('tBtnSettingsLabel').textContent = tr('Tavlens indstillinger', 'Board settings');
       $('tBtnQuickLabel').textContent = tr('Kerneord', 'Quick words');
-      $('tBtnSwitchLabel').textContent = tr('Skift bruger', 'Switch user');
+      $('tBtnSwitchLabel').textContent = tr('Log ud', 'Sign out');
       ['tBtnSettings', 'tBtnQuick', 'tBtnSwitch'].forEach(id => $(id).setAttribute('aria-label', $(id + 'Label').textContent));
       $('tBtnBack').textContent = '← ' + tr('Alle elever', 'All students');
+      $('tKpiTitle').textContent = tr('I dag sammenlignet med normalt', 'Today compared with usual');
+      $('tChartsTitle').textContent = tr(`Udvikling (${CHART_DAYS} dage)`, `Development (${CHART_DAYS} days)`);
+      $('tBtnChartTable').textContent = $('tChartTableWrap').hidden ? tr('Vis som tabel', 'Show as table') : tr('Skjul tabel', 'Hide table');
       $('tTodayTitle').textContent = tr('I dag', 'Today');
       $('tInsightsTitle').textContent = tr('Observationer og forslag', 'Observations and suggestions');
       $('tInsightsNote').textContent = tr('Observationerne bygger kun på tal fra appen. Brug dem som udgangspunkt sammen med din egen viden om eleven.', 'Observations are based only on numbers from the app. Use them as a starting point alongside what you know about the student.');
       $('tWeekTitle').textContent = tr('Seneste 7 dage', 'Last 7 days');
       $('tTopTitle').textContent = tr('Mest brugte ord (30 dage)', 'Most used words (30 days)');
       $('tOwnTitle').textContent = tr('Ord stavet selv (7 dage)', 'Words spelled independently (7 days)');
+      $('tWrongTitle').textContent = tr('Ord der ikke blev genkendt (7 dage)', 'Words not recognised (7 days)');
       $('tNotesTitle').textContent = tr('Noter om eleven', 'Notes about the student');
       $('tNotes').placeholder = tr('F.eks. mål, hvad der virker, og hvad I vil prøve næste gang.', 'For example goals, what works, and what to try next time.');
       $('tLogTitle').textContent = tr('Aktivitet', 'Activity');
       $('tBtnCsv').textContent = '⬇ ' + tr('Hent CSV', 'Download CSV');
       if (!$('tBtnClearAll').dataset.armed) $('tBtnClearAll').textContent = tr('Slet al historik', 'Delete all history');
       if (!$('tBtnClearOne').dataset.armed) $('tBtnClearOne').textContent = tr('Slet elevens historik', 'Delete this student’s history');
+      const hasDemo = readActivity().some(e => e.d);
+      $('tBtnDemo').textContent = hasDemo ? tr('Fjern eksempeldata', 'Remove example data') : tr('Indlæs eksempeldata', 'Load example data');
       const privacy = tr('Alt gemmes kun på denne enhed. Åbn oversigten i et ekstra vindue for at følge eleverne live.', 'Everything is saved on this device only. Open the overview in a second window to follow the students live.');
       $('tPrivacy').textContent = privacy;
       $('tDetailPrivacy').textContent = privacy;
@@ -2669,41 +3210,48 @@
 
     function renderTeacherOverview() {
       const all = readActivity();
-      const students = studentsOnDevice(all);
-      const today0 = dayStart(new Date());
+      const students = studentsOnDevice(all).map(s => ({ ...s, u: urgencyFor(eventsFor(s.name, all).length ? eventsFor(s.name, all) : [{ n: s.name, t: 0, k: 'none' }]) }));
+      students.forEach(s => { if (!eventsFor(s.name, all).length) { s.u.level = 'none'; s.u.reasons = []; } });
+      const offline = (s) => (s.u.st.state === 'idle' ? 1 : 0);
+      students.sort((x, y) => LEVEL_ORDER[x.u.level] - LEVEL_ORDER[y.u.level] || offline(x) - offline(y) || y.u.score - x.u.score || y.lastT - x.lastT);
       $('tTitle').textContent = tr('Elevoversigt', 'Students');
       $('tIntro').textContent = students.length
-        ? tr('Vælg en elev for at se detaljer, observationer og noter. Oversigten opdateres af sig selv.', 'Choose a student to see details, observations and notes. The overview updates by itself.')
-        : tr('Endnu ingen elever på denne enhed. Når en elev logger ind og bruger tavlen, vises de her.', 'No students on this device yet. Students appear here once they sign in and use the board.');
-      $('tGrid').innerHTML = students.map(({ name }) => {
-        const ev = eventsFor(name, all);
-        const st = liveStatusFor(name, ev);
-        const s = summarize(ev.filter(e => e.t >= today0));
-        const showLive = st.state !== 'idle' && st.sentence.trim();
-        const flag = buildInsights(ev).find(i => i.tone === 'note');
-        return `<button type="button" class="s-card" data-student="${escapeHtml(name)}">
-          <span class="s-head"><span class="s-name">${escapeHtml(nameLabel(name))}</span>${statusChip(st)}</span>
-          ${showLive ? `<span class="s-live">${escapeHtml(st.sentence.trim())}<span class="caret"></span></span>` : ''}
-          <span class="s-stats"><span><b>${s.words}</b> ${tr('ord', 'words')}</span><span><b>${s.letters}</b> ${tr('bogstaver', 'letters')}</span><span><b>${s.minutes}</b> ${tr('min. i dag', 'min today')}</span></span>
-          ${flag ? `<span class="s-flag">${flag.icon} ${flag.title}</span>` : ''}
+        ? tr('Eleverne er sorteret efter, hvem der har mest brug for hjælp lige nu. Vælg en elev for at se grafer, observationer og noter.', 'Students are sorted by who needs help most right now. Choose a student to see graphs, observations and notes.')
+        : tr('Endnu ingen elever på denne enhed. Når en elev logger ind og bruger tavlen, vises de her. Til en demo kan du indlæse eksempeldata nedenfor.', 'No students on this device yet. Students appear here once they sign in and use the board. For a demo, load example data below.');
+      const head = `<div class="rank-head" aria-hidden="true"><span>#</span><span>${tr('Elev', 'Student')}</span><span>${tr('Prioritet', 'Priority')}</span>${KPI_DEFS.map(d => `<span>${d.label()}</span>`).join('')}</div>`;
+      $('tRank').innerHTML = students.length ? head + students.map((s, i) => {
+        const u = s.u;
+        const why = u.reasons.slice(0, 2).map(r => r.text).join(' · ') || (u.level === 'none' ? '' : tr('Ingen tegn på problemer i dag', 'No signs of trouble today'));
+        const live = u.st.state !== 'idle' && u.st.sentence.trim() ? `<span class="r-live">${escapeHtml(u.st.sentence.trim())}<span class="caret"></span></span>` : '';
+        return `<button type="button" class="rank-row lvl-${u.level}" data-student="${escapeHtml(s.name)}">
+          <span class="r-num">${i + 1}</span>
+          <span class="r-who"><span class="s-name">${escapeHtml(nameLabel(s.name))}</span>${s.demo ? `<span class="demo-tag">${tr('Eksempel', 'Example')}</span>` : ''}${statusChip(u.st)}${live}</span>
+          <span class="r-level">${levelChip(u.level)}<span class="r-why">${escapeHtml(why)}</span></span>
+          <span class="r-kpis">${kpiCells(u, false)}</span>
         </button>`;
-      }).join('');
+      }).join('') : '';
     }
 
     function renderTeacherDetail() {
       const name = teacherStudent;
       const ev = eventsFor(name);
-      const st = liveStatusFor(name, ev);
+      const u = urgencyFor(ev.length ? ev : [{ n: name, t: 0, k: 'none' }]);
+      const st = u.st;
       const now = new Date();
       $('tTitle').textContent = tr('Elev', 'Student');
       $('tName').textContent = nameLabel(name);
       $('tStatus').innerHTML = statusChip(st);
+      $('tPriority').innerHTML = levelChip(ev.length ? u.level : 'none') + `<span class="r-why">${escapeHtml(u.reasons.map(r => r.text).join(' · ') || tr('Ingen tegn på problemer i dag.', 'No signs of trouble today.'))}</span>`;
+      $('tKpis').innerHTML = kpiCells(u, true);
+
+      // Graphs: only redraw when the data changed, so hovering is not interrupted
+      const sig = `${name}|${ev.length}|${ev.length ? ev[ev.length - 1].t : 0}|${currentLang}|${dayStart(now)}`;
+      if (sig !== chartSignature) { chartSignature = sig; renderCharts(u.a); }
 
       // Right now
       $('tLiveTitle').textContent = st.state === 'idle' ? tr('Seneste sætning', 'Latest sentence') : tr('Lige nu', 'Right now');
       $('tLiveWhen').textContent = st.lastT ? tr('Sidst aktiv ', 'Last active ') + agoText(st.lastT) : '';
-      const sentence = st.sentence.trim();
-      if (sentence) {
+      if (st.sentence.trim()) {
         const parts = st.sentence.split(' ');
         const current = parts[parts.length - 1];
         const finished = parts.slice(0, -1).filter(Boolean);
@@ -2723,35 +3271,36 @@
       $('tTiles').innerHTML = tiles.map(([n, label]) => `<div class="tile"><span class="num">${n}</span><span class="lbl">${label}</span></div>`).join('');
 
       // Observations
-      const insights = buildInsights(ev);
-      $('tInsights').innerHTML = insights.map(i => `<div class="insight ${i.tone}"><span class="i-ico" aria-hidden="true">${i.icon}</span><div><b>${i.title}</b><p>${i.text}</p>${i.tip ? `<p class="tip">💡 ${i.tip}</p>` : ''}</div></div>`).join('');
+      $('tInsights').innerHTML = buildInsights(ev).map(i => `<div class="insight ${i.tone}"><span class="i-ico" aria-hidden="true">${i.icon}</span><div><b>${i.title}</b><p>${i.text}</p>${i.tip ? `<p class="tip">💡 ${i.tip}</p>` : ''}</div></div>`).join('');
 
       // Last 7 days
       let rows = `<thead><tr><th>${tr('Dag', 'Day')}</th><th>${tr('Bogst.', 'Letters')}</th><th>${tr('Ord', 'Words')}</th><th>${tr('Kerneord', 'Quick')}</th><th>${tr('Rettelser', 'Corr.')}</th><th>${tr('Min.', 'Min')}</th></tr></thead><tbody>`;
       for (let i = 0; i < 7; i++) {
         const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
         const from = d.getTime();
-        const day = summarize(ev.filter(e => e.t >= from && e.t < from + 86400000));
+        const day = summarize(ev.filter(e => e.t >= from && e.t < from + DAY));
         const label = i === 0 ? tr('I dag', 'Today') : d.toLocaleDateString(dashLocale(), { weekday: 'short', day: 'numeric', month: 'short' });
         rows += `<tr class="${i === 0 ? 'today' : ''}"><td>${label}</td><td>${day.letters}</td><td>${day.words}</td><td>${day.quick}</td><td>${day.deletes}</td><td>${day.minutes}</td></tr>`;
       }
       $('tWeek').innerHTML = rows + '</tbody>';
 
       // Words
-      const since30 = Date.now() - 30 * 86400000;
+      const since30 = Date.now() - 30 * DAY;
       const counts = new Map();
       ev.filter(e => e.t >= since30 && (e.k === 'word' || e.k === 'quick') && e.x).forEach(e => counts.set(e.x, (counts.get(e.x) || 0) + 1));
-      const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12);
+      const top = [...counts.entries()].sort((x, y) => y[1] - x[1]).slice(0, 12);
       $('tTop').innerHTML = top.length
         ? top.map(([w, n]) => `<span class="wchip">${escapeHtml(emojiForWord(w) || '')} ${escapeHtml(w)} <span class="count">×${n}</span></span>`).join('')
         : `<p class="empty-note">${tr('Ingen ord endnu.', 'No words yet.')}</p>`;
-      const since7 = Date.now() - 7 * 86400000;
-      const own = [];
+      const since7 = Date.now() - 7 * DAY;
+      const own = [], wrong = [];
       ev.filter(e => e.t >= since7 && e.k === 'word' && (e.via === 'read' || e.via === 'space') && e.x && e.x.length >= 2)
-        .reverse().forEach(e => { if (!own.includes(e.x)) own.push(e.x); });
-      $('tOwn').innerHTML = own.length
-        ? own.slice(0, 20).map(w => `<span class="wchip">${escapeHtml(w)}</span>`).join('')
-        : `<p class="empty-note">${tr('Ingen endnu.', 'None yet.')}</p>`;
+        .reverse().forEach(e => {
+          const list = isKnownWord(e.x) ? own : wrong;
+          if (!list.includes(e.x)) list.push(e.x);
+        });
+      $('tOwn').innerHTML = own.length ? own.slice(0, 20).map(w => `<span class="wchip">${escapeHtml(w)}</span>`).join('') : `<p class="empty-note">${tr('Ingen endnu.', 'None yet.')}</p>`;
+      $('tWrong').innerHTML = wrong.length ? wrong.slice(0, 20).map(w => `<span class="wchip">${escapeHtml(w)}</span>`).join('') : `<p class="empty-note">${tr('Ingen.', 'None.')}</p>`;
 
       // Activity log (newest first)
       const recent = ev.slice(-100).reverse();
@@ -2782,6 +3331,7 @@
 
     function openStudent(name) {
       teacherStudent = name;
+      chartSignature = '';
       $('tOverview').hidden = true;
       $('tDetail').hidden = false;
       $('tNotes').value = readNotes()[name] || '';
@@ -2798,9 +3348,9 @@
       window.scrollTo(0, 0);
     }
 
-    $('tGrid').addEventListener('click', (e) => {
-      const card = e.target.closest('.s-card');
-      if (card) openStudent(card.dataset.student || '');
+    $('tRank').addEventListener('click', (e) => {
+      const row = e.target.closest('.rank-row');
+      if (row) openStudent(row.dataset.student || '');
     });
     $('tBtnBack').addEventListener('click', backToOverview);
     $('tBtnSettings').addEventListener('click', () => { syncBoardControls(); openModal(settingsModal); });
@@ -2821,8 +3371,8 @@
 
     $('tBtnCsv').addEventListener('click', () => {
       const ev = eventsFor(teacherStudent);
-      const header = [tr('tid', 'time'), tr('elev', 'student'), tr('type', 'type'), tr('tekst', 'text'), tr('detalje', 'detail'), tr('sprog', 'language')];
-      const rows = ev.map(e => [new Date(e.t).toLocaleString(dashLocale()), e.n || '', e.k, e.x || '', e.b || e.via || '', e.l || '']);
+      const header = [tr('tid', 'time'), tr('elev', 'student'), tr('type', 'type'), tr('tekst', 'text'), tr('detalje', 'detail'), tr('sprog', 'language'), tr('eksempeldata', 'example data')];
+      const rows = ev.map(e => [new Date(e.t).toLocaleString(dashLocale()), e.n || '', e.k, e.x || '', e.b || e.via || '', e.l || '', e.d ? tr('ja', 'yes') : '']);
       const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\r\n');
       const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
       const link = document.createElement('a');
@@ -2854,6 +3404,7 @@
     twoClick($('tBtnClearOne'), () => tr('Klik igen for at slette', 'Click again to delete'), () => {
       const keep = readActivity().filter(e => (e.n || '') !== teacherStudent);
       try { localStorage.setItem(ACTIVITY_KEY, JSON.stringify(keep)); } catch (e) {}
+      chartSignature = '';
       showBlendBanner(tr('Elevens historik er slettet', 'The student’s history was deleted'));
     });
     twoClick($('tBtnClearAll'), () => tr('Klik igen for at slette alt', 'Click again to delete everything'), () => {
@@ -2861,10 +3412,97 @@
       showBlendBanner(tr('Al historik er slettet', 'All history deleted'));
     });
 
+    /* ---- Example data for demos ----
+       Three made-up students with two weeks of school days, clearly marked as
+       examples: Ida is improving, Sofie is steady, and Malik struggles today. */
+    function seededRandom(text) {
+      let h = 2166136261;
+      for (const ch of text) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
+      return () => { h += 0x6D2B79F5; let t = h; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    }
+    const DEMO_SHORT = ['KAT', 'SOL', 'BIL', 'TOG', 'MAD', 'HUS', 'BOG', 'MOR', 'FAR', 'HUND', 'VAND', 'BOLD', 'FISK', 'SKIB', 'HVAL', 'ÆBLE', 'GLAD', 'STOL'];
+    const DEMO_LONG = ['BANAN', 'LAMPE', 'BLOMST', 'SKOLE', 'HJÆLP', 'CYKEL', 'PIZZA', 'STJERNE', 'ELEFANT', 'SØSTER', 'KJOLE', 'TRØJE'];
+    const DEMO_PROFILES = {
+      Ida: { from: { gap: 7, del: 0.3, miss: 0.3, words: 6, long: 0.15, rest: 0.35, restLen: 80, newGap: 24 }, to: { gap: 3.4, del: 0.08, miss: 0.06, words: 14, long: 0.45, rest: 0.12, restLen: 30, newGap: 8 } },
+      Sofie: { from: { gap: 5, del: 0.15, miss: 0.12, words: 9, long: 0.3, rest: 0.2, restLen: 50, newGap: 14 }, to: { gap: 4.4, del: 0.12, miss: 0.1, words: 11, long: 0.35, rest: 0.18, restLen: 45, newGap: 12 } },
+      Malik: { from: { gap: 5.5, del: 0.18, miss: 0.15, words: 8, long: 0.25, rest: 0.22, restLen: 60, newGap: 16 }, to: { gap: 4.2, del: 0.13, miss: 0.1, words: 11, long: 0.3, rest: 0.18, restLen: 45, newGap: 12 },
+        today: { gap: 9.5, del: 0.42, miss: 0.5, words: 6, long: 0.1, rest: 0.5, restLen: 150, newGap: 42, pause: 380, hard: 'BDP' } }
+    };
+    function misspell(word, rnd) {
+      const letters = [...word];
+      for (let tries = 0; tries < 6; tries++) {
+        const w = [...letters];
+        const i = Math.floor(rnd() * w.length);
+        const kind = Math.floor(rnd() * 3);
+        if (kind === 0 && w.length > 3) w.splice(i, 1);
+        else if (kind === 1) w.splice(i, 0, w[i]);
+        else w[i] = 'AEIOUY'[Math.floor(rnd() * 6)];
+        const out = w.join('');
+        if (out !== word && !isKnownWord(out)) return out;
+      }
+      return word + word[word.length - 1];
+    }
+    function demoEventsFor(name, profile) {
+      const rnd = seededRandom(name);
+      const out = [];
+      const now = new Date();
+      const today0 = dayStart(now);
+      const ev = (t, k, x, extra) => out.push(Object.assign({ t: Math.round(t), k, x: x || '', l: 'da', n: name, d: 1 }, extra || {}));
+      for (let i = CHART_DAYS - 1; i >= 0; i--) {
+        const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        if (i > 0 && (day.getDay() === 0 || day.getDay() === 6)) continue;
+        const f = (CHART_DAYS - 1 - i) / (CHART_DAYS - 1);
+        const jit = () => 0.85 + rnd() * 0.3;
+        const p = i === 0 && profile.today ? profile.today : Object.fromEntries(Object.keys(profile.from).map(k => [k, (profile.from[k] + (profile.to[k] - profile.from[k]) * f) * (k === 'words' ? 1 : jit())]));
+        const dayEvents = [];
+        let t = 0;
+        const push = (dt, k, x, extra) => { t += dt; dayEvents.push([t, k, x, extra]); };
+        push(0, 'session', name);
+        const nWords = Math.max(3, Math.round(p.words * jit()));
+        for (let w = 0; w < nWords; w++) {
+          if (w > 0) push(p.newGap * 1000 * (0.6 + rnd() * 0.8), null);
+          const pool = rnd() < p.long ? DEMO_LONG : DEMO_SHORT;
+          const target = pool[Math.floor(rnd() * pool.length)];
+          const typed = rnd() < p.miss ? misspell(target, rnd) : target;
+          let first = true;
+          for (const letter of typed) {
+            push(first ? 1200 : p.gap * 1000 * (0.6 + rnd() * 0.8), 'letter', letter);
+            first = false;
+            if (rnd() < p.del) {
+              const wrongLetter = p.hard ? p.hard[Math.floor(rnd() * p.hard.length)] : 'ABDEKLMNOPRST'[Math.floor(rnd() * 13)];
+              push(p.gap * 1000 * (0.6 + rnd() * 0.8), 'letter', wrongLetter);
+              push(p.gap * 700, 'delete', wrongLetter);
+            }
+          }
+          push(p.gap * 1000, 'word', typed, { via: rnd() < 0.7 ? 'read' : 'space' });
+          if (rnd() < 0.15) push(4000, 'quick', rnd() < 0.5 ? 'JA' : 'MERE');
+          if (w % 4 === 3) push(3000, 'sentence', 'JEG VIL ' + typed);
+          if (rnd() < p.rest) { const len = Math.round(p.restLen * (0.5 + rnd())); push(len * 1000, 'rest', String(len)); }
+          if (p.pause && w === Math.floor(nWords / 2)) { push(5000, 'pause', ''); push(p.pause * 1000, 'resume', String(p.pause)); }
+        }
+        // Place the session: school days at around 9:30, today ending a few minutes ago
+        let start = i === 0 ? now.getTime() - t - 4 * 60000 : day.getTime() + (9 * 60 + 15 + Math.floor(rnd() * 60)) * 60000;
+        if (i === 0) start = Math.max(start, today0 + 60000);
+        dayEvents.forEach(([dt, k, x, extra]) => { if (k) ev(Math.min(start + dt, i === 0 ? now.getTime() - 60000 : start + dt), k, x, extra); });
+      }
+      return out;
+    }
+    $('tBtnDemo').addEventListener('click', () => {
+      const real = readActivity().filter(e => !e.d);
+      const hadDemo = real.length !== readActivity().length;
+      let list = real;
+      if (!hadDemo) list = real.concat(...Object.entries(DEMO_PROFILES).map(([n, prof]) => demoEventsFor(n, prof)));
+      list.sort((x, y) => x.t - y.t);
+      try { localStorage.setItem(ACTIVITY_KEY, JSON.stringify(list.slice(-MAX_EVENTS))); } catch (e) {}
+      chartSignature = '';
+      showBlendBanner(hadDemo ? tr('Eksempeldata er fjernet', 'Example data removed') : tr('Eksempeldata er indlæst: Ida, Sofie og Malik', 'Example data loaded: Ida, Sofie and Malik'));
+      renderTeacher();
+    });
     // Init
     loadSettingsIntoApp();
     applyLanguageLabels();
     syncBoardControls();
+    resetLoginForm();
     applyVoiceModeUI();
     renderQuickWords();
     renderGrid();
